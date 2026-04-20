@@ -1469,9 +1469,7 @@ async function renderStudy() {
   const status = state.progress[cardKey] || 'new';
   const hasTranslations = state.currentLevel === 'A1' || state.currentLevel === 'A2';
   const info = LEVEL_INFO[state.currentLevel];
-
-  // Try to load photo
-  const photoUrl = await resolvePhoto(state.currentSet, state.currentLevel, card.word);
+  const renderToken = `${state.currentSet}-${state.currentLevel}-${actualIdx}`;
 
   const screen = document.getElementById('study-screen');
   screen.innerHTML = `
@@ -1489,7 +1487,7 @@ async function renderStudy() {
 
     <div class="flashcard" id="flashcard">
       <div class="flashcard-image theme-${card.theme}">
-        ${photoUrl ? `<img class="photo-img" src="${photoUrl}" alt="${card.word}" onerror="this.style.display='none'">` : ''}
+        <img class="photo-img" id="card-photo" src="" alt="${card.word}" style="display:none;" onerror="this.style.display='none'">
         <div class="glyph">${card.glyph}</div>
         <button class="fav-btn" id="fav-btn">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="${isFavorite ? '#ec4899' : 'none'}" stroke="${isFavorite ? '#ec4899' : '#6b7280'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -1571,6 +1569,17 @@ async function renderStudy() {
   
   if (document.getElementById('prev-btn')) document.getElementById('prev-btn').onclick = (e) => { e.stopPropagation(); if (state.cardIndex > 0) { state.cardIndex--; state.flipped = false; render(); }};
   if (document.getElementById('next-btn')) document.getElementById('next-btn').onclick = (e) => { e.stopPropagation(); if (state.cardIndex < cards.length - 1) { state.cardIndex++; state.flipped = false; render(); }};
+
+  // Load card photo asynchronously so the UI appears immediately.
+  resolvePhoto(state.currentSet, state.currentLevel, card.word).then(photoUrl => {
+    if (!photoUrl) return;
+    const activeToken = `${state.currentSet}-${state.currentLevel}-${(state.shuffled && state.shuffledOrder ? state.shuffledOrder[state.cardIndex] : state.cardIndex)}`;
+    if (activeToken !== renderToken) return;
+    const img = document.getElementById('card-photo');
+    if (!img) return;
+    img.src = photoUrl;
+    img.style.display = '';
+  });
 }
 
 function renderResults() {
