@@ -1,0 +1,1733 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #1a1a2e;
+    -webkit-font-smoothing: antialiased;
+    padding: 20px 12px;
+  }
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 28px;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    min-height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .screen { flex: 1; padding: 24px 20px; overflow-y: auto; }
+  .hidden { display: none !important; }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    gap: 10px;
+  }
+  .header h1 {
+    font-size: 26px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea, #f093fb);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+  }
+  .header p { font-size: 13px; color: #6b7280; margin-top: 2px; }
+  .icon-btn {
+    width: 40px; height: 40px;
+    border-radius: 14px;
+    border: none;
+    background: #f3f4f6;
+    color: #4b5563;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .icon-btn:hover { background: #e5e7eb; transform: translateY(-1px); }
+  .icon-btn.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  /* STATS */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .stat {
+    background: white;
+    border-radius: 16px;
+    padding: 14px 12px;
+    border: 1px solid #f3f4f6;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .stat-label {
+    font-size: 11px;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 4px;
+    margin-bottom: 4px;
+  }
+  .stat-value { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .stat.streak .stat-value { color: #f97316; }
+  .stat.xp .stat-value { color: #eab308; }
+  .stat.mastered .stat-value { color: #10b981; }
+
+  /* SECTION LABEL */
+  .section-label {
+    font-size: 11px;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    margin-top: 4px;
+  }
+
+  /* WORD SET CARDS */
+  .set-grid { display: grid; gap: 10px; margin-bottom: 22px; }
+  .set-card {
+    background: white;
+    border: 2px solid transparent;
+    border-radius: 18px;
+    padding: 14px 16px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 14px;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+  }
+  .set-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+  .set-card.active {
+    border-color: #667eea;
+    background: linear-gradient(135deg, rgba(102,126,234,0.08), rgba(240,147,251,0.08));
+  }
+  .set-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+  .set-info { flex: 1; min-width: 0; }
+  .set-name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+  .set-desc { font-size: 12px; color: #6b7280; }
+
+  /* LEVEL CARDS */
+  .level-grid { display: grid; gap: 10px; }
+  .level-card {
+    background: white;
+    border: 1px solid #f3f4f6;
+    border-radius: 18px;
+    padding: 14px 16px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 14px;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+  }
+  .level-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+  .level-badge {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    color: white;
+    flex-shrink: 0;
+    letter-spacing: 0.5px;
+  }
+  .level-info { flex: 1; min-width: 0; }
+  .level-header { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+  .level-name { font-size: 14px; font-weight: 700; }
+  .level-tag {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #f093fb, #667eea);
+    color: white;
+    letter-spacing: 0.3px;
+  }
+  .level-count { font-size: 11px; color: #9ca3af; }
+  .progress-row { display: flex; align-items: center; gap: 8px; }
+  .progress-bar {
+    flex: 1; height: 6px;
+    background: #f3f4f6;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .progress-text {
+    font-size: 11px;
+    color: #6b7280;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    min-width: 42px;
+    text-align: right;
+  }
+  .chevron { color: #d1d5db; flex-shrink: 0; }
+
+  /* STUDY SCREEN */
+  .study-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 8px;
+  }
+  .back-btn {
+    background: transparent; border: none; cursor: pointer;
+    display: flex; align-items: center; gap: 4px;
+    color: #6b7280; font-size: 14px; padding: 6px 8px;
+    border-radius: 10px;
+    font-family: inherit;
+  }
+  .back-btn:hover { background: #f3f4f6; }
+  .level-pill {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.3px;
+  }
+  .top-actions { display: flex; gap: 6px; }
+  .top-action {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    border: none;
+    background: #f3f4f6;
+    color: #6b7280;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .top-action:hover { background: #e5e7eb; }
+  .top-action.on {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+  }
+
+  .global-progress {
+    height: 4px;
+    background: #f3f4f6;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+
+  /* FLASHCARD */
+  .flashcard {
+    background: white;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s;
+  }
+  .flashcard:hover { transform: translateY(-2px); }
+  .flashcard-image {
+    width: 100%;
+    height: 240px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .flashcard-image::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,0.4) 2px, transparent 2px),
+      radial-gradient(circle at 80% 70%, rgba(255,255,255,0.3) 3px, transparent 3px),
+      radial-gradient(circle at 50% 90%, rgba(255,255,255,0.35) 2px, transparent 2px),
+      radial-gradient(circle at 90% 20%, rgba(255,255,255,0.3) 2px, transparent 2px);
+    background-size: 90px 90px, 120px 120px, 70px 70px, 100px 100px;
+    opacity: 0.9;
+  }
+  .glyph {
+    font-size: 110px;
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 6px 16px rgba(0,0,0,0.15));
+  }
+  .photo-img {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: 2;
+  }
+  .fav-btn {
+    position: absolute;
+    top: 12px; right: 12px;
+    width: 40px; height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.95);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px);
+    z-index: 3;
+    transition: transform 0.2s;
+  }
+  .fav-btn:hover { transform: scale(1.1); }
+  .status-pill {
+    position: absolute;
+    top: 14px; left: 14px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    z-index: 3;
+  }
+  .status-pill.mastered { color: #059669; }
+  .status-pill.learning { color: #d97706; }
+  .status-pill.hard { color: #dc2626; }
+
+  .card-body { padding: 20px 22px 24px; }
+  .card-front { text-align: center; padding: 8px 0 4px; }
+  .word-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; margin-bottom: 6px;
+  }
+  .word {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #1a1a2e;
+  }
+  .word-sm { font-size: 22px; }
+  .speak-btn {
+    width: 34px; height: 34px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s;
+  }
+  .speak-btn:hover { transform: scale(1.1); }
+  .speak-btn.small { width: 28px; height: 28px; }
+  .ipa {
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 6px;
+  }
+  .pos {
+    display: inline-block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #9ca3af;
+    font-weight: 700;
+    padding: 3px 10px;
+    background: #f3f4f6;
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+  .hint { font-size: 11px; color: #9ca3af; }
+
+  .card-back { }
+  .back-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .back-meta {
+    font-size: 12px;
+    color: #6b7280;
+    font-family: 'SF Mono', Consolas, monospace;
+    margin-bottom: 14px;
+  }
+  .back-meta i { font-family: inherit; font-style: italic; }
+  .definition {
+    font-size: 15px;
+    line-height: 1.55;
+    margin-bottom: 12px;
+    color: #1a1a2e;
+  }
+  .example {
+    padding: 12px 14px;
+    background: linear-gradient(135deg, rgba(102,126,234,0.06), rgba(240,147,251,0.06));
+    border-left: 3px solid #667eea;
+    border-radius: 10px;
+    font-size: 14px;
+    font-style: italic;
+    color: #4b5563;
+    line-height: 1.5;
+    margin-bottom: 14px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .example-text { flex: 1; }
+  .example-speak {
+    width: 30px; height: 30px;
+    border: none;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #667eea;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+
+  .translations-toggle {
+    display: inline-flex;
+    align-items: center; gap: 6px;
+    background: #f3f4f6;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #4b5563;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .translations-toggle:hover { background: #e5e7eb; }
+  .translations {
+    margin-top: 10px;
+    display: grid; gap: 8px;
+  }
+  .translation {
+    padding: 10px 14px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .translation.ar { background: linear-gradient(135deg, #ddd6fe, #e9d5ff); }
+  .translation.zh { background: linear-gradient(135deg, #fce7f3, #fbcfe8); }
+  .translation-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .translation.ar .translation-label { color: #5b21b6; }
+  .translation.zh .translation-label { color: #9f1239; }
+  .translation-text {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .translation.ar .translation-text { color: #4c1d95; }
+  .translation.zh .translation-text { color: #831843; }
+
+  /* ACTIONS */
+  .actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .action {
+    padding: 14px 8px;
+    border: none;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    transition: transform 0.15s;
+  }
+  .action:hover { transform: translateY(-2px); }
+  .action.hard {
+    background: linear-gradient(135deg, #fecaca, #fca5a5);
+    color: #991b1b;
+  }
+  .action.learning {
+    background: linear-gradient(135deg, #fed7aa, #fdba74);
+    color: #9a3412;
+  }
+  .action.mastered {
+    background: linear-gradient(135deg, #a7f3d0, #6ee7b7);
+    color: #065f46;
+  }
+
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+  }
+  .nav-btn {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #6b7280;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 4px;
+    font-family: inherit;
+  }
+  .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .nav-hint { font-size: 11px; color: #9ca3af; }
+
+  /* RESULTS */
+  .results-wrap { text-align: center; padding: 20px 0; }
+  .trophy {
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f093fb, #667eea);
+    margin: 0 auto 20px;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+  }
+  .results-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .results-sub { font-size: 13px; color: #6b7280; margin-bottom: 24px; }
+  .results-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .rstat { border-radius: 14px; padding: 14px 10px; }
+  .rstat.mastered { background: linear-gradient(135deg, #a7f3d0, #6ee7b7); color: #065f46; }
+  .rstat.learning { background: linear-gradient(135deg, #fed7aa, #fdba74); color: #9a3412; }
+  .rstat.hard { background: linear-gradient(135deg, #fecaca, #fca5a5); color: #991b1b; }
+  .rstat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
+  .rstat-value { font-size: 28px; font-weight: 800; }
+
+  .btn-primary {
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%;
+    font-family: inherit;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+    transition: transform 0.2s;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5); }
+  .btn-secondary {
+    padding: 12px 20px;
+    background: white;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    width: 100%;
+    font-family: inherit;
+    margin-top: 8px;
+  }
+  .btn-secondary:hover { background: #f9fafb; }
+  .btn-text {
+    padding: 10px 20px;
+    background: transparent;
+    color: #9ca3af;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    width: 100%;
+    font-family: inherit;
+    margin-top: 4px;
+  }
+
+  /* QUIZ */
+  .quiz-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .quiz-counter { font-size: 13px; color: #6b7280; font-weight: 600; }
+  .quiz-score {
+    display: flex; align-items: center; gap: 4px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #92400e;
+  }
+  .quiz-question {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    color: #1a1a2e;
+  }
+  .quiz-picture {
+    width: 100%;
+    height: 200px;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .quiz-picture .glyph { font-size: 100px; }
+  .quiz-word-prompt {
+    text-align: center;
+    padding: 22px 18px;
+    background: linear-gradient(135deg, rgba(102,126,234,0.08), rgba(240,147,251,0.08));
+    border-radius: 20px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+  }
+  .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .quiz-opt {
+    padding: 14px 10px;
+    background: white;
+    border: 2px solid #f3f4f6;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .quiz-opt:hover:not(:disabled) { transform: translateY(-2px); border-color: #667eea; }
+  .quiz-opt.correct { background: linear-gradient(135deg, #a7f3d0, #6ee7b7); border-color: #10b981; color: #065f46; }
+  .quiz-opt.wrong { background: linear-gradient(135deg, #fecaca, #fca5a5); border-color: #ef4444; color: #991b1b; }
+  .quiz-opt.dim { opacity: 0.35; }
+  .quiz-opt-pic {
+    padding: 0;
+    height: 110px;
+    overflow: hidden;
+    border-radius: 14px;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .quiz-opt-pic .glyph { font-size: 56px; }
+  .quiz-check {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+  }
+  .quiz-check.ok { background: #10b981; }
+  .quiz-check.no { background: #ef4444; }
+
+  .feedback {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .feedback.ok { background: linear-gradient(135deg, #a7f3d0, #6ee7b7); color: #065f46; }
+  .feedback.no { background: linear-gradient(135deg, #fecaca, #fca5a5); color: #991b1b; }
+
+  /* LOADING */
+  .loading {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 20px; color: #6b7280;
+  }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid #f3f4f6;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* INFO BANNER */
+  .info-banner {
+    background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(240,147,251,0.1));
+    border: 1px solid rgba(102,126,234,0.2);
+    border-radius: 14px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #4b5563;
+    margin-top: 14px;
+    display: flex; align-items: flex-start; gap: 8px;
+    line-height: 1.5;
+  }
+  .info-banner strong { color: #1a1a2e; }
+
+  /* GRADIENT BACKGROUNDS FOR LEVEL BADGES */
+  .grad-A1 { background: linear-gradient(135deg, #10b981, #84cc16); }
+  .grad-A2 { background: linear-gradient(135deg, #84cc16, #eab308); }
+  .grad-B1 { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
+  .grad-B2 { background: linear-gradient(135deg, #3b82f6, #8b5cf6); }
+  .grad-C1 { background: linear-gradient(135deg, #8b5cf6, #ec4899); }
+  .grad-C2 { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+
+  /* THEME BACKGROUNDS */
+  .theme-red { background: linear-gradient(135deg, #fecaca, #f87171); }
+  .theme-amber { background: linear-gradient(135deg, #fed7aa, #fb923c); }
+  .theme-green { background: linear-gradient(135deg, #bbf7d0, #4ade80); }
+  .theme-blue { background: linear-gradient(135deg, #bfdbfe, #60a5fa); }
+  .theme-purple { background: linear-gradient(135deg, #e9d5ff, #c084fc); }
+  .theme-teal { background: linear-gradient(135deg, #99f6e4, #2dd4bf); }
+  .theme-coral { background: linear-gradient(135deg, #fbcfe8, #f472b6); }
+  .theme-pink { background: linear-gradient(135deg, #fce7f3, #f9a8d4); }
+  .theme-gray { background: linear-gradient(135deg, #e5e7eb, #9ca3af); }
+  .theme-indigo { background: linear-gradient(135deg, #c7d2fe, #818cf8); }
+
+  .fav-count {
+    margin-top: 16px;
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.15), rgba(236, 72, 153, 0.15));
+    border-radius: 14px;
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: #831843; font-weight: 600;
+  }
+
+  /* ERROR */
+  .error-box {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 14px;
+    padding: 16px;
+    color: #991b1b;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .error-box code {
+    background: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+</style>
+
+<div class="app">
+  <!-- HOME SCREEN -->
+  <div class="screen" id="home-screen">
+    <div class="header">
+      <div>
+        <h1>CEFR flashcards</h1>
+        <p>Master vocabulary across 6 levels</p>
+      </div>
+      <button class="icon-btn active" id="tts-toggle" title="Audio">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+      </button>
+    </div>
+
+    <div class="stats">
+      <div class="stat streak">
+        <div class="stat-label">🔥 Streak</div>
+        <div class="stat-value" id="stat-streak">0</div>
+      </div>
+      <div class="stat xp">
+        <div class="stat-label">⚡ XP</div>
+        <div class="stat-value" id="stat-xp">0</div>
+      </div>
+      <div class="stat mastered">
+        <div class="stat-label">🏆 Mastered</div>
+        <div class="stat-value" id="stat-mastered">0</div>
+      </div>
+    </div>
+
+    <div class="section-label">Word sets</div>
+    <div class="set-grid" id="set-grid"></div>
+
+    <div class="section-label" id="levels-label">Levels</div>
+    <div class="level-grid" id="level-grid"></div>
+
+    <div id="fav-count-container"></div>
+
+    <div class="info-banner">
+      <span>📝</span>
+      <div><strong>Edit words:</strong> change <code>words.js</code> in your repo to add more sets or translations. See the README for details.</div>
+    </div>
+  </div>
+
+  <!-- STUDY SCREEN -->
+  <div class="screen hidden" id="study-screen"></div>
+
+  <!-- RESULTS SCREEN -->
+  <div class="screen hidden" id="results-screen"></div>
+
+  <!-- QUIZ SCREEN -->
+  <div class="screen hidden" id="quiz-screen"></div>
+
+  <!-- LOADING SCREEN -->
+  <div class="screen hidden" id="loading-screen">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div>Loading vocabulary...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// VOCABULARY DATA
+// ============================================================
+// In the GitHub version, this will be in a separate words.js file.
+// Structure is identical — you can copy this exact object to your repo.
+
+window.WORD_SETS = {
+  general: {
+    name: 'Everyday English',
+    desc: 'Core vocabulary for daily life',
+    icon: '🌍',
+    iconBg: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+    levels: {
+      A1: [
+        { word: 'apple', ipa: '/ˈæp.əl/', pos: 'noun', def: 'A round fruit with red, green, or yellow skin.', example: 'I eat an apple every day.', ar: 'تفاحة', zh: '苹果', glyph: '🍎', theme: 'red' },
+        { word: 'dog', ipa: '/dɒɡ/', pos: 'noun', def: 'A common animal kept as a pet.', example: 'My dog loves to play in the park.', ar: 'كلب', zh: '狗', glyph: '🐕', theme: 'amber' },
+        { word: 'house', ipa: '/haʊs/', pos: 'noun', def: 'A building where people live.', example: 'They live in a big house.', ar: 'منزل', zh: '房子', glyph: '🏠', theme: 'coral' },
+        { word: 'water', ipa: '/ˈwɔː.tər/', pos: 'noun', def: 'A clear liquid that we drink.', example: 'Please give me a glass of water.', ar: 'ماء', zh: '水', glyph: '💧', theme: 'blue' },
+        { word: 'book', ipa: '/bʊk/', pos: 'noun', def: 'A set of printed pages bound together.', example: 'I am reading an interesting book.', ar: 'كتاب', zh: '书', glyph: '📖', theme: 'purple' },
+        { word: 'cat', ipa: '/kæt/', pos: 'noun', def: 'A small furry animal often kept as a pet.', example: 'The cat is sleeping on the sofa.', ar: 'قطة', zh: '猫', glyph: '🐈', theme: 'gray' },
+        { word: 'sun', ipa: '/sʌn/', pos: 'noun', def: 'The bright star that gives us light and heat.', example: 'The sun is shining today.', ar: 'شمس', zh: '太阳', glyph: '☀️', theme: 'amber' },
+        { word: 'car', ipa: '/kɑːr/', pos: 'noun', def: 'A vehicle with four wheels used for transport.', example: 'My father bought a new car.', ar: 'سيارة', zh: '汽车', glyph: '🚗', theme: 'red' },
+        { word: 'tree', ipa: '/triː/', pos: 'noun', def: 'A tall plant with a trunk and branches.', example: 'The tree in our garden is very old.', ar: 'شجرة', zh: '树', glyph: '🌳', theme: 'green' },
+        { word: 'happy', ipa: '/ˈhæp.i/', pos: 'adjective', def: 'Feeling or showing pleasure.', example: 'She feels happy when she sees her friends.', ar: 'سعيد', zh: '开心', glyph: '😊', theme: 'amber' },
+        { word: 'bread', ipa: '/bred/', pos: 'noun', def: 'A food made from flour and baked in an oven.', example: 'I buy fresh bread every morning.', ar: 'خبز', zh: '面包', glyph: '🍞', theme: 'amber' },
+        { word: 'flower', ipa: '/ˈflaʊ.ər/', pos: 'noun', def: 'The colorful part of a plant.', example: 'He gave her a beautiful flower.', ar: 'زهرة', zh: '花', glyph: '🌸', theme: 'pink' },
+        { word: 'fish', ipa: '/fɪʃ/', pos: 'noun', def: 'An animal that lives in water.', example: 'There are many fish in the sea.', ar: 'سمكة', zh: '鱼', glyph: '🐟', theme: 'blue' },
+        { word: 'milk', ipa: '/mɪlk/', pos: 'noun', def: 'A white liquid drink from cows.', example: 'I drink milk with my breakfast.', ar: 'حليب', zh: '牛奶', glyph: '🥛', theme: 'gray' },
+        { word: 'eat', ipa: '/iːt/', pos: 'verb', def: 'To put food into your mouth.', example: 'We eat dinner at seven.', ar: 'يأكل', zh: '吃', glyph: '🍽️', theme: 'coral' },
+        { word: 'sleep', ipa: '/sliːp/', pos: 'verb', def: 'To rest with eyes closed.', example: 'Babies sleep a lot.', ar: 'ينام', zh: '睡觉', glyph: '😴', theme: 'purple' },
+        { word: 'big', ipa: '/bɪɡ/', pos: 'adjective', def: 'Large in size.', example: 'An elephant is a big animal.', ar: 'كبير', zh: '大', glyph: '🐘', theme: 'gray' },
+        { word: 'small', ipa: '/smɔːl/', pos: 'adjective', def: 'Little in size.', example: 'A mouse is a small animal.', ar: 'صغير', zh: '小', glyph: '🐭', theme: 'gray' },
+        { word: 'red', ipa: '/red/', pos: 'adjective', def: 'The color of blood or fire.', example: 'She wore a red dress.', ar: 'أحمر', zh: '红色', glyph: '🔴', theme: 'red' },
+        { word: 'blue', ipa: '/bluː/', pos: 'adjective', def: 'The color of the sky or sea.', example: 'The sky is bright blue.', ar: 'أزرق', zh: '蓝色', glyph: '🔵', theme: 'blue' },
+        { word: 'ball', ipa: '/bɔːl/', pos: 'noun', def: 'A round object used in games.', example: 'The children play with a ball.', ar: 'كرة', zh: '球', glyph: '⚽', theme: 'green' },
+        { word: 'baby', ipa: '/ˈbeɪ.bi/', pos: 'noun', def: 'A very young child.', example: 'The baby is sleeping quietly.', ar: 'طفل', zh: '宝宝', glyph: '👶', theme: 'pink' },
+        { word: 'school', ipa: '/skuːl/', pos: 'noun', def: 'A place where children go to learn.', example: 'My school is near my house.', ar: 'مدرسة', zh: '学校', glyph: '🏫', theme: 'blue' },
+        { word: 'drink', ipa: '/drɪŋk/', pos: 'verb', def: 'To take liquid into your body.', example: 'I drink coffee in the morning.', ar: 'يشرب', zh: '喝', glyph: '🥤', theme: 'blue' },
+      ],
+      A2: [
+        { word: 'travel', ipa: '/ˈtræv.əl/', pos: 'verb', def: 'To go from one place to another.', example: 'I love to travel to new countries.', ar: 'يسافر', zh: '旅行', glyph: '✈️', theme: 'blue' },
+        { word: 'breakfast', ipa: '/ˈbrek.fəst/', pos: 'noun', def: 'The first meal of the day.', example: 'We have breakfast at seven.', ar: 'فطور', zh: '早餐', glyph: '🥐', theme: 'amber' },
+        { word: 'weather', ipa: '/ˈweð.ər/', pos: 'noun', def: 'The conditions outside.', example: 'The weather is very nice today.', ar: 'طقس', zh: '天气', glyph: '⛅', theme: 'blue' },
+        { word: 'friend', ipa: '/frend/', pos: 'noun', def: 'A person you like.', example: 'My best friend lives next door.', ar: 'صديق', zh: '朋友', glyph: '🤝', theme: 'amber' },
+        { word: 'kitchen', ipa: '/ˈkɪtʃ.ən/', pos: 'noun', def: 'The room where food is prepared.', example: 'She is cooking in the kitchen.', ar: 'مطبخ', zh: '厨房', glyph: '🍳', theme: 'amber' },
+        { word: 'busy', ipa: '/ˈbɪz.i/', pos: 'adjective', def: 'Having a lot to do.', example: 'I am very busy at work.', ar: 'مشغول', zh: '忙', glyph: '🏃', theme: 'coral' },
+        { word: 'market', ipa: '/ˈmɑː.kɪt/', pos: 'noun', def: 'A place to buy and sell things.', example: 'I buy vegetables at the market.', ar: 'سوق', zh: '市场', glyph: '🛒', theme: 'green' },
+        { word: 'enjoy', ipa: '/ɪnˈdʒɔɪ/', pos: 'verb', def: 'To get pleasure from something.', example: 'They enjoy watching movies.', ar: 'يستمتع', zh: '享受', glyph: '🎉', theme: 'pink' },
+        { word: 'holiday', ipa: '/ˈhɒl.ə.deɪ/', pos: 'noun', def: 'A day when you do not work.', example: 'We are going to Spain for our holiday.', ar: 'عطلة', zh: '假期', glyph: '🏖️', theme: 'amber' },
+        { word: 'office', ipa: '/ˈɒf.ɪs/', pos: 'noun', def: 'A place where people work.', example: 'My office is on the third floor.', ar: 'مكتب', zh: '办公室', glyph: '🏢', theme: 'gray' },
+        { word: 'exercise', ipa: '/ˈek.sə.saɪz/', pos: 'noun', def: 'Physical activity for health.', example: 'Daily exercise is good for you.', ar: 'تمرين', zh: '运动', glyph: '🏋️', theme: 'red' },
+        { word: 'delicious', ipa: '/dɪˈlɪʃ.əs/', pos: 'adjective', def: 'Having a very pleasant taste.', example: 'This cake is delicious.', ar: 'لذيذ', zh: '美味', glyph: '🍰', theme: 'pink' },
+        { word: 'airport', ipa: '/ˈeə.pɔːt/', pos: 'noun', def: 'Where airplanes take off and land.', example: 'We arrived at the airport early.', ar: 'مطار', zh: '机场', glyph: '🛫', theme: 'blue' },
+        { word: 'ticket', ipa: '/ˈtɪk.ɪt/', pos: 'noun', def: 'A small paper that gives entry.', example: 'I bought a concert ticket.', ar: 'تذكرة', zh: '票', glyph: '🎫', theme: 'amber' },
+        { word: 'beach', ipa: '/biːtʃ/', pos: 'noun', def: 'An area of sand by the sea.', example: 'We spent the day at the beach.', ar: 'شاطئ', zh: '海滩', glyph: '🏝️', theme: 'amber' },
+        { word: 'mountain', ipa: '/ˈmaʊn.tən/', pos: 'noun', def: 'A very high area of land.', example: 'They climbed the mountain.', ar: 'جبل', zh: '山', glyph: '⛰️', theme: 'gray' },
+        { word: 'tired', ipa: '/taɪəd/', pos: 'adjective', def: 'Needing rest or sleep.', example: 'I feel tired after the walk.', ar: 'متعب', zh: '累', glyph: '😪', theme: 'purple' },
+        { word: 'medicine', ipa: '/ˈmed.ɪ.sən/', pos: 'noun', def: 'Something you take when ill.', example: 'Take this medicine three times a day.', ar: 'دواء', zh: '药', glyph: '💊', theme: 'red' },
+        { word: 'party', ipa: '/ˈpɑː.ti/', pos: 'noun', def: 'A social gathering.', example: 'We had a great party last night.', ar: 'حفلة', zh: '派对', glyph: '🎊', theme: 'pink' },
+        { word: 'garden', ipa: '/ˈɡɑː.dən/', pos: 'noun', def: 'An area with plants.', example: 'She grows flowers in her garden.', ar: 'حديقة', zh: '花园', glyph: '🌻', theme: 'green' },
+        { word: 'music', ipa: '/ˈmjuː.zɪk/', pos: 'noun', def: 'Sounds arranged pleasingly.', example: 'I listen to music while studying.', ar: 'موسيقى', zh: '音乐', glyph: '🎵', theme: 'purple' },
+        { word: 'hungry', ipa: '/ˈhʌŋ.ɡri/', pos: 'adjective', def: 'Wanting or needing food.', example: 'I am hungry, let us eat.', ar: 'جائع', zh: '饿', glyph: '🍔', theme: 'coral' },
+        { word: 'learn', ipa: '/lɜːn/', pos: 'verb', def: 'To gain knowledge.', example: 'Children learn quickly.', ar: 'يتعلم', zh: '学习', glyph: '🎓', theme: 'blue' },
+        { word: 'gift', ipa: '/ɡɪft/', pos: 'noun', def: 'Something given to someone.', example: 'She gave me a lovely gift.', ar: 'هدية', zh: '礼物', glyph: '🎁', theme: 'pink' },
+      ],
+      B1: [
+        { word: 'achieve', ipa: '/əˈtʃiːv/', pos: 'verb', def: 'To succeed after trying hard.', example: 'She worked hard to achieve her goals.', glyph: '🏆', theme: 'amber' },
+        { word: 'opinion', ipa: '/əˈpɪn.jən/', pos: 'noun', def: 'A thought or belief about something.', example: 'In my opinion, this is the best book.', glyph: '💭', theme: 'blue' },
+        { word: 'experience', ipa: '/ɪkˈspɪə.ri.əns/', pos: 'noun', def: 'Knowledge from doing something.', example: 'Living abroad was an amazing experience.', glyph: '🌟', theme: 'amber' },
+        { word: 'suggest', ipa: '/səˈdʒest/', pos: 'verb', def: 'To offer an idea.', example: 'I suggest we meet tomorrow.', glyph: '💡', theme: 'amber' },
+        { word: 'depend', ipa: '/dɪˈpend/', pos: 'verb', def: 'To rely on something.', example: 'Success depends on hard work.', glyph: '🔗', theme: 'gray' },
+        { word: 'environment', ipa: '/ɪnˈvaɪ.rən.mənt/', pos: 'noun', def: 'The natural world.', example: 'We must protect the environment.', glyph: '🌱', theme: 'green' },
+        { word: 'community', ipa: '/kəˈmjuː.nə.ti/', pos: 'noun', def: 'People living in the same area.', example: 'Our community is close-knit.', glyph: '🏘️', theme: 'coral' },
+        { word: 'challenge', ipa: '/ˈtʃæl.ɪndʒ/', pos: 'noun', def: 'A difficult test of ability.', example: 'Learning a language is a challenge.', glyph: '⚡', theme: 'amber' },
+        { word: 'improve', ipa: '/ɪmˈpruːv/', pos: 'verb', def: 'To make or become better.', example: 'She wants to improve her skills.', glyph: '📈', theme: 'green' },
+        { word: 'culture', ipa: '/ˈkʌl.tʃər/', pos: 'noun', def: 'Customs and arts of a society.', example: 'Japanese culture fascinates me.', glyph: '🎭', theme: 'purple' },
+        { word: 'advice', ipa: '/ədˈvaɪs/', pos: 'noun', def: 'A suggestion on what to do.', example: 'My teacher gave useful advice.', glyph: '🗣️', theme: 'blue' },
+        { word: 'careful', ipa: '/ˈkeə.fəl/', pos: 'adjective', def: 'Paying attention to avoid mistakes.', example: 'Be careful crossing the road.', glyph: '⚠️', theme: 'amber' },
+        { word: 'decision', ipa: '/dɪˈsɪʒ.ən/', pos: 'noun', def: 'A choice made after thinking.', example: 'That was a difficult decision.', glyph: '🤔', theme: 'purple' },
+        { word: 'trust', ipa: '/trʌst/', pos: 'verb', def: 'To believe someone is honest.', example: 'I trust her with this task.', glyph: '🤲', theme: 'teal' },
+        { word: 'behavior', ipa: '/bɪˈheɪ.vjər/', pos: 'noun', def: 'The way a person acts.', example: 'His behavior was strange.', glyph: '👥', theme: 'gray' },
+        { word: 'recommend', ipa: '/ˌrek.əˈmend/', pos: 'verb', def: 'To suggest something as good.', example: 'I recommend this restaurant.', glyph: '👍', theme: 'green' },
+        { word: 'discover', ipa: '/dɪˈskʌv.ər/', pos: 'verb', def: 'To find for the first time.', example: 'Scientists discover new species.', glyph: '🔍', theme: 'blue' },
+        { word: 'memory', ipa: '/ˈmem.ər.i/', pos: 'noun', def: 'Something remembered.', example: 'I have happy memories.', glyph: '🧠', theme: 'pink' },
+        { word: 'pressure', ipa: '/ˈpreʃ.ər/', pos: 'noun', def: 'Stress or force to do something.', example: 'He feels pressure at work.', glyph: '⚙️', theme: 'red' },
+        { word: 'vehicle', ipa: '/ˈviː.ɪ.kəl/', pos: 'noun', def: 'A machine for transport.', example: 'Electric vehicles are popular.', glyph: '🚙', theme: 'gray' },
+      ],
+      B2: [
+        { word: 'acquire', ipa: '/əˈkwaɪər/', pos: 'verb', def: 'To get or obtain something.', example: 'She acquired her skills through practice.', glyph: '🎯', theme: 'red' },
+        { word: 'controversy', ipa: '/ˈkɒn.trə.vɜː.si/', pos: 'noun', def: 'A public disagreement.', example: 'The policy sparked controversy.', glyph: '⚔️', theme: 'red' },
+        { word: 'perceive', ipa: '/pəˈsiːv/', pos: 'verb', def: 'To understand in a particular way.', example: 'People perceive success differently.', glyph: '👁️', theme: 'purple' },
+        { word: 'inevitable', ipa: '/ɪˈnev.ɪ.tə.bəl/', pos: 'adjective', def: 'Certain to happen.', example: 'Change is inevitable.', glyph: '⏳', theme: 'gray' },
+        { word: 'advocate', ipa: '/ˈæd.və.keɪt/', pos: 'verb', def: 'To publicly support.', example: 'She advocates for rights.', glyph: '📣', theme: 'coral' },
+        { word: 'endeavor', ipa: '/ɪnˈdev.ər/', pos: 'noun', def: 'A serious attempt.', example: 'Their endeavor was successful.', glyph: '🧗', theme: 'amber' },
+        { word: 'coincide', ipa: '/ˌkəʊ.ɪnˈsaɪd/', pos: 'verb', def: 'To happen at the same time.', example: 'Our vacations coincided.', glyph: '🔄', theme: 'teal' },
+        { word: 'tremendous', ipa: '/trɪˈmen.dəs/', pos: 'adjective', def: 'Very great in intensity.', example: 'They made tremendous progress.', glyph: '🚀', theme: 'purple' },
+        { word: 'diminish', ipa: '/dɪˈmɪn.ɪʃ/', pos: 'verb', def: 'To become smaller.', example: 'His influence diminished.', glyph: '📉', theme: 'red' },
+        { word: 'prominent', ipa: '/ˈprɒm.ɪ.nənt/', pos: 'adjective', def: 'Important or famous.', example: 'He is a prominent scientist.', glyph: '⭐', theme: 'amber' },
+        { word: 'sustain', ipa: '/səˈsteɪn/', pos: 'verb', def: 'To keep going over time.', example: 'We must sustain our efforts.', glyph: '♻️', theme: 'green' },
+        { word: 'elaborate', ipa: '/ɪˈlæb.ə.reɪt/', pos: 'verb', def: 'To explain in more detail.', example: 'Could you elaborate on that?', glyph: '📝', theme: 'blue' },
+        { word: 'resilient', ipa: '/rɪˈzɪl.i.ənt/', pos: 'adjective', def: 'Able to recover quickly.', example: 'Children are resilient.', glyph: '🛡️', theme: 'teal' },
+        { word: 'ambiguous', ipa: '/æmˈbɪɡ.ju.əs/', pos: 'adjective', def: 'Having multiple meanings.', example: 'Her answer was ambiguous.', glyph: '❓', theme: 'purple' },
+        { word: 'diligent', ipa: '/ˈdɪl.ɪ.dʒənt/', pos: 'adjective', def: 'Careful and thorough.', example: 'She is a diligent student.', glyph: '📚', theme: 'blue' },
+        { word: 'reluctant', ipa: '/rɪˈlʌk.tənt/', pos: 'adjective', def: 'Unwilling and hesitant.', example: 'He was reluctant to share.', glyph: '😐', theme: 'gray' },
+        { word: 'inherent', ipa: '/ɪnˈher.ənt/', pos: 'adjective', def: 'Existing as a natural part.', example: 'Risk is inherent in investing.', glyph: '🧬', theme: 'teal' },
+        { word: 'compelling', ipa: '/kəmˈpel.ɪŋ/', pos: 'adjective', def: 'Powerful and convincing.', example: 'She made a compelling argument.', glyph: '🎬', theme: 'coral' },
+        { word: 'anticipate', ipa: '/ænˈtɪs.ɪ.peɪt/', pos: 'verb', def: 'To expect to happen.', example: 'We anticipate strong demand.', glyph: '🔮', theme: 'purple' },
+        { word: 'integrity', ipa: '/ɪnˈteɡ.rə.ti/', pos: 'noun', def: 'Strong moral principles.', example: 'She is known for her integrity.', glyph: '💎', theme: 'blue' },
+      ],
+      C1: [
+        { word: 'ubiquitous', ipa: '/juːˈbɪk.wɪ.təs/', pos: 'adjective', def: 'Present everywhere.', example: 'Smartphones are ubiquitous.', glyph: '📱', theme: 'blue' },
+        { word: 'meticulous', ipa: '/məˈtɪk.jə.ləs/', pos: 'adjective', def: 'Showing great attention to detail.', example: 'She is meticulous about records.', glyph: '🔬', theme: 'teal' },
+        { word: 'paradigm', ipa: '/ˈpær.ə.daɪm/', pos: 'noun', def: 'A typical example or pattern.', example: 'The discovery led to a new paradigm.', glyph: '🧩', theme: 'purple' },
+        { word: 'scrutinize', ipa: '/ˈskruː.tɪ.naɪz/', pos: 'verb', def: 'To examine very carefully.', example: 'They scrutinize every proposal.', glyph: '🔎', theme: 'gray' },
+        { word: 'contingent', ipa: '/kənˈtɪn.dʒənt/', pos: 'adjective', def: 'Depending on conditions.', example: 'Plans are contingent on weather.', glyph: '🎲', theme: 'coral' },
+        { word: 'articulate', ipa: '/ɑːˈtɪk.jə.leɪt/', pos: 'verb', def: 'To express clearly.', example: 'He articulates complex ideas easily.', glyph: '🗨️', theme: 'blue' },
+        { word: 'pertinent', ipa: '/ˈpɜː.tɪ.nənt/', pos: 'adjective', def: 'Relevant to the matter.', example: 'She raised pertinent questions.', glyph: '📌', theme: 'red' },
+        { word: 'epitome', ipa: '/ɪˈpɪt.ə.mi/', pos: 'noun', def: 'A perfect example.', example: 'She is the epitome of grace.', glyph: '👑', theme: 'amber' },
+        { word: 'ambivalent', ipa: '/æmˈbɪv.ə.lənt/', pos: 'adjective', def: 'Having mixed feelings.', example: 'I feel ambivalent about moving.', glyph: '⚖️', theme: 'gray' },
+        { word: 'discern', ipa: '/dɪˈsɜːn/', pos: 'verb', def: 'To recognize clearly.', example: 'Its hard to discern his intent.', glyph: '🎯', theme: 'teal' },
+        { word: 'pragmatic', ipa: '/præɡˈmæt.ɪk/', pos: 'adjective', def: 'Sensible and realistic.', example: 'We need a pragmatic approach.', glyph: '🛠️', theme: 'amber' },
+        { word: 'conducive', ipa: '/kənˈdjuː.sɪv/', pos: 'adjective', def: 'Providing a favorable environment.', example: 'Quiet is conducive to study.', glyph: '🏛️', theme: 'blue' },
+        { word: 'eloquent', ipa: '/ˈel.ə.kwənt/', pos: 'adjective', def: 'Fluent and persuasive.', example: 'Her eloquent speech moved us.', glyph: '🎤', theme: 'coral' },
+        { word: 'nuance', ipa: '/ˈnjuː.ɑːns/', pos: 'noun', def: 'A subtle difference.', example: 'The translation missed the nuance.', glyph: '🎨', theme: 'pink' },
+        { word: 'formidable', ipa: '/ˈfɔː.mɪ.də.bəl/', pos: 'adjective', def: 'Causing fear or respect.', example: 'She is a formidable opponent.', glyph: '🦁', theme: 'amber' },
+        { word: 'tenacious', ipa: '/təˈneɪ.ʃəs/', pos: 'adjective', def: 'Persistent and determined.', example: 'His tenacious spirit never gave up.', glyph: '🧗‍♀️', theme: 'red' },
+        { word: 'candor', ipa: '/ˈkæn.dər/', pos: 'noun', def: 'Honest and open expression.', example: 'I appreciate your candor.', glyph: '💬', theme: 'teal' },
+        { word: 'proliferate', ipa: '/prəˈlɪf.ər.eɪt/', pos: 'verb', def: 'To increase rapidly.', example: 'Apps continue to proliferate.', glyph: '🌐', theme: 'green' },
+        { word: 'austere', ipa: '/ɒˈstɪər/', pos: 'adjective', def: 'Severe or strict.', example: 'The room had an austere style.', glyph: '⬜', theme: 'gray' },
+        { word: 'emulate', ipa: '/ˈem.jə.leɪt/', pos: 'verb', def: 'To imitate to equal.', example: 'Many artists emulate their heroes.', glyph: '🪞', theme: 'purple' },
+      ],
+      C2: [
+        { word: 'ephemeral', ipa: '/ɪˈfem.ər.əl/', pos: 'adjective', def: 'Lasting a very short time.', example: 'The cherry blossoms are ephemeral.', glyph: '🌸', theme: 'pink' },
+        { word: 'quintessential', ipa: '/ˌkwɪn.tɪˈsen.ʃəl/', pos: 'adjective', def: 'The most perfect example.', example: 'Paris is the quintessential romantic city.', glyph: '🗼', theme: 'coral' },
+        { word: 'obfuscate', ipa: '/ˈɒb.fə.skeɪt/', pos: 'verb', def: 'To make unclear.', example: 'Politicians obfuscate the truth.', glyph: '🌫️', theme: 'gray' },
+        { word: 'serendipity', ipa: '/ˌser.ənˈdɪp.ə.ti/', pos: 'noun', def: 'Finding good things by chance.', example: 'Meeting him was serendipity.', glyph: '🍀', theme: 'green' },
+        { word: 'magnanimous', ipa: '/mæɡˈnæn.ɪ.məs/', pos: 'adjective', def: 'Very generous or forgiving.', example: 'Her magnanimous gesture touched us.', glyph: '🕊️', theme: 'teal' },
+        { word: 'cacophony', ipa: '/kəˈkɒf.ə.ni/', pos: 'noun', def: 'A harsh mix of sounds.', example: 'The cacophony kept me awake.', glyph: '📢', theme: 'red' },
+        { word: 'perfunctory', ipa: '/pəˈfʌŋk.tər.i/', pos: 'adjective', def: 'Done with minimal effort.', example: 'He gave a perfunctory nod.', glyph: '🤷', theme: 'gray' },
+        { word: 'iconoclast', ipa: '/aɪˈkɒn.ə.klæst/', pos: 'noun', def: 'Attacker of traditions.', example: 'He was an iconoclast in art.', glyph: '🔨', theme: 'red' },
+        { word: 'perspicacious', ipa: '/ˌpɜː.spɪˈkeɪ.ʃəs/', pos: 'adjective', def: 'Having ready insight.', example: 'Her perspicacious remarks impressed us.', glyph: '🦉', theme: 'purple' },
+        { word: 'ineffable', ipa: '/ɪnˈef.ə.bəl/', pos: 'adjective', def: 'Too great for words.', example: 'The sunset had ineffable beauty.', glyph: '🌅', theme: 'amber' },
+        { word: 'sycophant', ipa: '/ˈsɪk.ə.fænt/', pos: 'noun', def: 'One who flatters for gain.', example: 'The king had many sycophants.', glyph: '🎭', theme: 'pink' },
+        { word: 'equanimity', ipa: '/ˌek.wəˈnɪm.ə.ti/', pos: 'noun', def: 'Mental calmness.', example: 'She faced the crisis with equanimity.', glyph: '🧘', theme: 'teal' },
+        { word: 'sanguine', ipa: '/ˈsæŋ.ɡwɪn/', pos: 'adjective', def: 'Optimistic in bad situations.', example: 'He remained sanguine despite setbacks.', glyph: '☀️', theme: 'amber' },
+        { word: 'mellifluous', ipa: '/məˈlɪf.lu.əs/', pos: 'adjective', def: 'Sweet and smooth sounding.', example: 'Her mellifluous voice captivated us.', glyph: '🎶', theme: 'purple' },
+        { word: 'pernicious', ipa: '/pəˈnɪʃ.əs/', pos: 'adjective', def: 'Harmful in a subtle way.', example: 'Gossip can be pernicious.', glyph: '☠️', theme: 'red' },
+        { word: 'loquacious', ipa: '/ləˈkweɪ.ʃəs/', pos: 'adjective', def: 'Very talkative.', example: 'The loquacious host kept us laughing.', glyph: '🗣️', theme: 'coral' },
+        { word: 'halcyon', ipa: '/ˈhæl.si.ən/', pos: 'adjective', def: 'Denoting past happiness.', example: 'The halcyon days of youth.', glyph: '🌊', theme: 'blue' },
+        { word: 'lugubrious', ipa: '/ləˈɡuː.bri.əs/', pos: 'adjective', def: 'Looking or sounding sad.', example: 'He spoke in a lugubrious tone.', glyph: '🌧️', theme: 'blue' },
+        { word: 'sisyphean', ipa: '/ˌsɪs.ɪˈfiː.ən/', pos: 'adjective', def: 'Endless and unavailing.', example: 'Fighting spam feels sisyphean.', glyph: '⛰️', theme: 'gray' },
+        { word: 'bucolic', ipa: '/bjuːˈkɒl.ɪk/', pos: 'adjective', def: 'Relating to countryside.', example: 'We stayed at a bucolic farm.', glyph: '🌾', theme: 'amber' },
+      ],
+    },
+  },
+  business: {
+    name: 'Business & Work',
+    desc: 'Professional vocabulary',
+    icon: '💼',
+    iconBg: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+    levels: {
+      A1: [
+        { word: 'job', ipa: '/dʒɒb/', pos: 'noun', def: 'Work to earn money.', example: 'She has a good job.', ar: 'وظيفة', zh: '工作', glyph: '💼', theme: 'blue' },
+        { word: 'boss', ipa: '/bɒs/', pos: 'noun', def: 'A person in charge.', example: 'My boss is kind.', ar: 'مدير', zh: '老板', glyph: '👔', theme: 'gray' },
+        { word: 'money', ipa: '/ˈmʌn.i/', pos: 'noun', def: 'Coins or notes to buy things.', example: 'I need money for food.', ar: 'مال', zh: '钱', glyph: '💰', theme: 'amber' },
+        { word: 'work', ipa: '/wɜːk/', pos: 'verb', def: 'To do a job.', example: 'I work five days a week.', ar: 'يعمل', zh: '工作', glyph: '⚒️', theme: 'coral' },
+        { word: 'team', ipa: '/tiːm/', pos: 'noun', def: 'A group working together.', example: 'Our team has ten people.', ar: 'فريق', zh: '团队', glyph: '👥', theme: 'teal' },
+        { word: 'email', ipa: '/ˈiː.meɪl/', pos: 'noun', def: 'A message sent by computer.', example: 'Please send me an email.', ar: 'بريد', zh: '邮件', glyph: '📧', theme: 'blue' },
+        { word: 'meeting', ipa: '/ˈmiː.tɪŋ/', pos: 'noun', def: 'A gathering for work.', example: 'We have a meeting at ten.', ar: 'اجتماع', zh: '会议', glyph: '🤝', theme: 'purple' },
+        { word: 'phone', ipa: '/fəʊn/', pos: 'noun', def: 'A device to talk at distance.', example: 'I will call you.', ar: 'هاتف', zh: '电话', glyph: '📞', theme: 'green' },
+        { word: 'company', ipa: '/ˈkʌm.pə.ni/', pos: 'noun', def: 'A business organization.', example: 'He works for a big company.', ar: 'شركة', zh: '公司', glyph: '🏢', theme: 'blue' },
+        { word: 'pay', ipa: '/peɪ/', pos: 'verb', def: 'To give money for something.', example: 'I will pay for lunch.', ar: 'يدفع', zh: '付钱', glyph: '💳', theme: 'green' },
+        { word: 'desk', ipa: '/desk/', pos: 'noun', def: 'A table for working.', example: 'My desk is by the window.', ar: 'مكتب', zh: '桌子', glyph: '🖥️', theme: 'gray' },
+        { word: 'paper', ipa: '/ˈpeɪ.pər/', pos: 'noun', def: 'Thin material for writing.', example: 'Write on the paper.', ar: 'ورقة', zh: '纸', glyph: '📄', theme: 'gray' },
+      ],
+      A2: [
+        { word: 'salary', ipa: '/ˈsæl.ə.ri/', pos: 'noun', def: 'Money paid regularly.', example: 'His monthly salary is good.', ar: 'راتب', zh: '工资', glyph: '💵', theme: 'green' },
+        { word: 'employee', ipa: '/ɪmˈplɔɪ.iː/', pos: 'noun', def: 'A person who works for a company.', example: 'The company has 500 employees.', ar: 'موظف', zh: '员工', glyph: '👨‍💼', theme: 'blue' },
+        { word: 'customer', ipa: '/ˈkʌs.tə.mər/', pos: 'noun', def: 'A person who buys things.', example: 'We treat every customer well.', ar: 'عميل', zh: '顾客', glyph: '🛍️', theme: 'coral' },
+        { word: 'project', ipa: '/ˈprɒdʒ.ekt/', pos: 'noun', def: 'A planned piece of work.', example: 'Our project starts Monday.', ar: 'مشروع', zh: '项目', glyph: '📋', theme: 'amber' },
+        { word: 'schedule', ipa: '/ˈʃedʒ.uːl/', pos: 'noun', def: 'A plan of when things happen.', example: 'Check the schedule.', ar: 'جدول', zh: '日程', glyph: '📅', theme: 'purple' },
+        { word: 'report', ipa: '/rɪˈpɔːt/', pos: 'noun', def: 'A written document.', example: 'I wrote a sales report.', ar: 'تقرير', zh: '报告', glyph: '📊', theme: 'blue' },
+        { word: 'deadline', ipa: '/ˈded.laɪn/', pos: 'noun', def: 'Latest time to finish.', example: 'The deadline is Friday.', ar: 'موعد نهائي', zh: '截止日期', glyph: '⏰', theme: 'red' },
+        { word: 'client', ipa: '/ˈklaɪ.ənt/', pos: 'noun', def: 'Someone who pays for a service.', example: 'Our client is happy.', ar: 'زبون', zh: '客户', glyph: '🤵', theme: 'gray' },
+        { word: 'colleague', ipa: '/ˈkɒl.iːɡ/', pos: 'noun', def: 'Someone you work with.', example: 'My colleagues are friendly.', ar: 'زميل', zh: '同事', glyph: '👫', theme: 'teal' },
+        { word: 'contract', ipa: '/ˈkɒn.trækt/', pos: 'noun', def: 'A written agreement.', example: 'Please sign the contract.', ar: 'عقد', zh: '合同', glyph: '📜', theme: 'amber' },
+        { word: 'profit', ipa: '/ˈprɒf.ɪt/', pos: 'noun', def: 'Money earned after costs.', example: 'Profit is high this year.', ar: 'ربح', zh: '利润', glyph: '📈', theme: 'green' },
+        { word: 'budget', ipa: '/ˈbʌdʒ.ɪt/', pos: 'noun', def: 'A plan for spending.', example: 'Stay within budget.', ar: 'ميزانية', zh: '预算', glyph: '💹', theme: 'amber' },
+      ],
+      B1: [
+        { word: 'negotiate', ipa: '/nɪˈɡəʊ.ʃi.eɪt/', pos: 'verb', def: 'To discuss to reach agreement.', example: 'We will negotiate the terms.', glyph: '🤝', theme: 'blue' },
+        { word: 'strategy', ipa: '/ˈstræt.ə.dʒi/', pos: 'noun', def: 'A plan for achieving a goal.', example: 'Our strategy works well.', glyph: '♟️', theme: 'purple' },
+        { word: 'promote', ipa: '/prəˈməʊt/', pos: 'verb', def: 'To advance or advertise.', example: 'She was promoted to manager.', glyph: '📢', theme: 'coral' },
+        { word: 'launch', ipa: '/lɔːntʃ/', pos: 'verb', def: 'To start something new.', example: 'We launch the product in June.', glyph: '🚀', theme: 'red' },
+        { word: 'revenue', ipa: '/ˈrev.ən.juː/', pos: 'noun', def: 'Total income from business.', example: 'Revenue increased 20 percent.', glyph: '💰', theme: 'green' },
+        { word: 'efficient', ipa: '/ɪˈfɪʃ.ənt/', pos: 'adjective', def: 'Working without waste.', example: 'She is an efficient worker.', glyph: '⚡', theme: 'amber' },
+        { word: 'feedback', ipa: '/ˈfiːd.bæk/', pos: 'noun', def: 'Comments about performance.', example: 'Her feedback was helpful.', glyph: '💬', theme: 'teal' },
+        { word: 'invest', ipa: '/ɪnˈvest/', pos: 'verb', def: 'To put money for profit.', example: 'They invest in technology.', glyph: '📊', theme: 'blue' },
+        { word: 'industry', ipa: '/ˈɪn.də.stri/', pos: 'noun', def: 'A branch of economic activity.', example: 'The tech industry grows fast.', glyph: '🏭', theme: 'gray' },
+        { word: 'brand', ipa: '/brænd/', pos: 'noun', def: 'A product name and image.', example: 'Apple is a famous brand.', glyph: '🏷️', theme: 'coral' },
+        { word: 'network', ipa: '/ˈnet.wɜːk/', pos: 'verb', def: 'To meet people for business.', example: 'Network at conferences.', glyph: '🌐', theme: 'blue' },
+        { word: 'supplier', ipa: '/səˈplaɪ.ər/', pos: 'noun', def: 'A company that provides goods.', example: 'We need a new supplier.', glyph: '📦', theme: 'amber' },
+      ],
+      B2: [
+        { word: 'leverage', ipa: '/ˈliː.və.rɪdʒ/', pos: 'verb', def: 'To use for advantage.', example: 'We leverage data for decisions.', glyph: '⚖️', theme: 'purple' },
+        { word: 'stakeholder', ipa: '/ˈsteɪk.həʊl.dər/', pos: 'noun', def: 'A person with business interest.', example: 'All stakeholders approved.', glyph: '🤝', theme: 'blue' },
+        { word: 'streamline', ipa: '/ˈstriːm.laɪn/', pos: 'verb', def: 'To make more efficient.', example: 'We streamline the process.', glyph: '🔧', theme: 'teal' },
+        { word: 'synergy', ipa: '/ˈsɪn.ə.dʒi/', pos: 'noun', def: 'Combined effort greater than parts.', example: 'The teams show synergy.', glyph: '🔗', theme: 'coral' },
+        { word: 'scalable', ipa: '/ˈskeɪ.lə.bəl/', pos: 'adjective', def: 'Able to grow.', example: 'Our platform is scalable.', glyph: '📈', theme: 'green' },
+        { word: 'delegate', ipa: '/ˈdel.ɪ.ɡeɪt/', pos: 'verb', def: 'To give a task to others.', example: 'Good managers delegate.', glyph: '📨', theme: 'blue' },
+        { word: 'innovation', ipa: '/ˌɪn.əˈveɪ.ʃən/', pos: 'noun', def: 'New ideas or methods.', example: 'Innovation drives us.', glyph: '💡', theme: 'amber' },
+        { word: 'compliance', ipa: '/kəmˈplaɪ.əns/', pos: 'noun', def: 'Following rules.', example: 'Compliance is essential.', glyph: '✅', theme: 'green' },
+        { word: 'acquisition', ipa: '/ˌæk.wɪˈzɪʃ.ən/', pos: 'noun', def: 'Buying another company.', example: 'The acquisition cost 2 billion.', glyph: '🏢', theme: 'gray' },
+        { word: 'liability', ipa: '/ˌlaɪ.əˈbɪl.ə.ti/', pos: 'noun', def: 'A debt or obligation.', example: 'The company has liabilities.', glyph: '📉', theme: 'red' },
+        { word: 'portfolio', ipa: '/pɔːtˈfəʊ.li.əʊ/', pos: 'noun', def: 'A collection of investments.', example: 'Diversify your portfolio.', glyph: '📁', theme: 'purple' },
+        { word: 'outsource', ipa: '/ˈaʊt.sɔːs/', pos: 'verb', def: 'To hire outside for work.', example: 'We outsource support.', glyph: '🌍', theme: 'blue' },
+      ],
+      C1: [
+        { word: 'paradigm', ipa: '/ˈpær.ə.daɪm/', pos: 'noun', def: 'A standard model.', example: 'Remote work is the new paradigm.', glyph: '🧩', theme: 'purple' },
+        { word: 'consolidate', ipa: '/kənˈsɒl.ɪ.deɪt/', pos: 'verb', def: 'To combine into one.', example: 'The firm will consolidate.', glyph: '🔗', theme: 'teal' },
+        { word: 'disruptive', ipa: '/dɪsˈrʌp.tɪv/', pos: 'adjective', def: 'Causing radical change.', example: 'Disruptive tech changes markets.', glyph: '⚡', theme: 'red' },
+        { word: 'proprietary', ipa: '/prəˈpraɪə.tər.i/', pos: 'adjective', def: 'Owned by a company.', example: 'They use proprietary software.', glyph: '🔐', theme: 'blue' },
+        { word: 'mitigate', ipa: '/ˈmɪt.ɪ.ɡeɪt/', pos: 'verb', def: 'To make less severe.', example: 'We mitigate risk with insurance.', glyph: '🛡️', theme: 'green' },
+        { word: 'underwrite', ipa: '/ˈʌn.də.raɪt/', pos: 'verb', def: 'To agree to support financially.', example: 'Banks underwrite bonds.', glyph: '✍️', theme: 'amber' },
+        { word: 'arbitrage', ipa: '/ˈɑː.bɪ.trɑːʒ/', pos: 'noun', def: 'Profiting from price differences.', example: 'Currency arbitrage is fast.', glyph: '🔄', theme: 'coral' },
+        { word: 'solvent', ipa: '/ˈsɒl.vənt/', pos: 'adjective', def: 'Able to pay debts.', example: 'The company remains solvent.', glyph: '💵', theme: 'green' },
+        { word: 'overhead', ipa: '/ˈəʊ.və.hed/', pos: 'noun', def: 'Ongoing business expenses.', example: 'Reduce overhead to profit.', glyph: '🏛️', theme: 'gray' },
+        { word: 'quorum', ipa: '/ˈkwɔː.rəm/', pos: 'noun', def: 'Minimum members to vote.', example: 'We need a quorum.', glyph: '👥', theme: 'blue' },
+        { word: 'incentivize', ipa: '/ɪnˈsen.tɪ.vaɪz/', pos: 'verb', def: 'To motivate with rewards.', example: 'We incentivize performance.', glyph: '🎁', theme: 'pink' },
+        { word: 'prerequisite', ipa: '/ˌpriːˈrek.wɪ.zɪt/', pos: 'noun', def: 'Something required in advance.', example: 'Experience is a prerequisite.', glyph: '🎯', theme: 'red' },
+      ],
+      C2: [
+        { word: 'fiduciary', ipa: '/fɪˈdjuː.ʃər.i/', pos: 'adjective', def: 'Involving financial trust.', example: 'Directors have fiduciary duties.', glyph: '⚖️', theme: 'blue' },
+        { word: 'oligopoly', ipa: '/ˌɒl.ɪˈɡɒp.əl.i/', pos: 'noun', def: 'Market controlled by few.', example: 'Telecom is an oligopoly.', glyph: '🏛️', theme: 'gray' },
+        { word: 'hegemony', ipa: '/hɪˈɡem.ə.ni/', pos: 'noun', def: 'Dominance over others.', example: 'The firm achieved hegemony.', glyph: '👑', theme: 'amber' },
+        { word: 'amortize', ipa: '/əˈmɔː.taɪz/', pos: 'verb', def: 'To pay off debt gradually.', example: 'We amortize the loan.', glyph: '📉', theme: 'red' },
+        { word: 'indemnity', ipa: '/ɪnˈdem.nə.ti/', pos: 'noun', def: 'Protection against loss.', example: 'The contract has indemnity clauses.', glyph: '🛡️', theme: 'teal' },
+        { word: 'escrow', ipa: '/ˈes.krəʊ/', pos: 'noun', def: 'Funds held by third party.', example: 'Money stays in escrow.', glyph: '🔒', theme: 'purple' },
+        { word: 'dividend', ipa: '/ˈdɪv.ɪ.dend/', pos: 'noun', def: 'Profit shared with shareholders.', example: 'Shareholders get dividends.', glyph: '💎', theme: 'green' },
+        { word: 'perquisite', ipa: '/ˈpɜː.kwɪ.zɪt/', pos: 'noun', def: 'An extra job benefit.', example: 'Insurance is a perquisite.', glyph: '🎁', theme: 'pink' },
+        { word: 'cartel', ipa: '/kɑːˈtel/', pos: 'noun', def: 'A group fixing prices.', example: 'The cartel controlled prices.', glyph: '⛽', theme: 'coral' },
+        { word: 'arbitrator', ipa: '/ˈɑː.bɪ.treɪ.tər/', pos: 'noun', def: 'Neutral dispute resolver.', example: 'An arbitrator settled it.', glyph: '⚖️', theme: 'blue' },
+        { word: 'preeminent', ipa: '/priˈem.ɪ.nənt/', pos: 'adjective', def: 'Surpassing all others.', example: 'She is preeminent in her field.', glyph: '🥇', theme: 'amber' },
+        { word: 'autonomy', ipa: '/ɔːˈtɒn.ə.mi/', pos: 'noun', def: 'Independence and self-governance.', example: 'Employees value autonomy.', glyph: '🗝️', theme: 'purple' },
+      ],
+    },
+  },
+  travel: {
+    name: 'Travel & Places',
+    desc: 'Vocabulary for exploring',
+    icon: '✈️',
+    iconBg: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+    levels: {
+      A1: [
+        { word: 'map', ipa: '/mæp/', pos: 'noun', def: 'A drawing of an area.', example: 'I use a map to find the way.', ar: 'خريطة', zh: '地图', glyph: '🗺️', theme: 'blue' },
+        { word: 'city', ipa: '/ˈsɪt.i/', pos: 'noun', def: 'A large town.', example: 'Paris is a beautiful city.', ar: 'مدينة', zh: '城市', glyph: '🏙️', theme: 'gray' },
+        { word: 'bag', ipa: '/bæɡ/', pos: 'noun', def: 'Container for things.', example: 'My bag is heavy.', ar: 'حقيبة', zh: '包', glyph: '🎒', theme: 'coral' },
+        { word: 'hotel', ipa: '/həʊˈtel/', pos: 'noun', def: 'Where travelers sleep.', example: 'Our hotel is near the beach.', ar: 'فندق', zh: '酒店', glyph: '🏨', theme: 'purple' },
+        { word: 'plane', ipa: '/pleɪn/', pos: 'noun', def: 'A vehicle that flies.', example: 'The plane is fast.', ar: 'طائرة', zh: '飞机', glyph: '✈️', theme: 'blue' },
+        { word: 'train', ipa: '/treɪn/', pos: 'noun', def: 'Long vehicle on rails.', example: 'The train leaves at nine.', ar: 'قطار', zh: '火车', glyph: '🚆', theme: 'red' },
+        { word: 'bus', ipa: '/bʌs/', pos: 'noun', def: 'Large road vehicle.', example: 'I take the bus to school.', ar: 'حافلة', zh: '公共汽车', glyph: '🚌', theme: 'amber' },
+        { word: 'street', ipa: '/striːt/', pos: 'noun', def: 'A road in a town.', example: 'My house is on this street.', ar: 'شارع', zh: '街道', glyph: '🛣️', theme: 'gray' },
+        { word: 'sea', ipa: '/siː/', pos: 'noun', def: 'Large area of salt water.', example: 'The sea is blue and calm.', ar: 'بحر', zh: '海', glyph: '🌊', theme: 'blue' },
+        { word: 'park', ipa: '/pɑːk/', pos: 'noun', def: 'Open area with grass.', example: 'We walk in the park.', ar: 'حديقة', zh: '公园', glyph: '🌳', theme: 'green' },
+        { word: 'food', ipa: '/fuːd/', pos: 'noun', def: 'What we eat.', example: 'The food here is good.', ar: 'طعام', zh: '食物', glyph: '🍱', theme: 'coral' },
+        { word: 'go', ipa: '/ɡəʊ/', pos: 'verb', def: 'To move to another place.', example: 'We go to the beach.', ar: 'يذهب', zh: '去', glyph: '🚶', theme: 'teal' },
+      ],
+      A2: [
+        { word: 'passport', ipa: '/ˈpɑːs.pɔːt/', pos: 'noun', def: 'Official travel document.', example: 'Bring your passport.', ar: 'جواز سفر', zh: '护照', glyph: '🛂', theme: 'blue' },
+        { word: 'suitcase', ipa: '/ˈsuːt.keɪs/', pos: 'noun', def: 'Large bag for clothes.', example: 'My suitcase is full.', ar: 'حقيبة سفر', zh: '行李箱', glyph: '🧳', theme: 'coral' },
+        { word: 'tourist', ipa: '/ˈtʊə.rɪst/', pos: 'noun', def: 'A person visiting for fun.', example: 'Many tourists visit Rome.', ar: 'سائح', zh: '游客', glyph: '📸', theme: 'amber' },
+        { word: 'journey', ipa: '/ˈdʒɜː.ni/', pos: 'noun', def: 'A trip between places.', example: 'The journey took six hours.', ar: 'رحلة', zh: '旅程', glyph: '🗺️', theme: 'teal' },
+        { word: 'luggage', ipa: '/ˈlʌɡ.ɪdʒ/', pos: 'noun', def: 'Bags for travel.', example: 'I lost my luggage.', ar: 'أمتعة', zh: '行李', glyph: '🧳', theme: 'purple' },
+        { word: 'reservation', ipa: '/ˌrez.əˈveɪ.ʃən/', pos: 'noun', def: 'An arrangement booked.', example: 'I have a reservation for two.', ar: 'حجز', zh: '预订', glyph: '📝', theme: 'blue' },
+        { word: 'souvenir', ipa: '/ˌsuː.vəˈnɪər/', pos: 'noun', def: 'Thing bought to remember trip.', example: 'I bought souvenirs.', ar: 'تذكار', zh: '纪念品', glyph: '🎁', theme: 'pink' },
+        { word: 'foreign', ipa: '/ˈfɒr.ən/', pos: 'adjective', def: 'From another country.', example: 'I love foreign languages.', ar: 'أجنبي', zh: '外国的', glyph: '🌏', theme: 'green' },
+        { word: 'currency', ipa: '/ˈkʌr.ən.si/', pos: 'noun', def: 'Money of a country.', example: 'The currency is the euro.', ar: 'عملة', zh: '货币', glyph: '💱', theme: 'amber' },
+        { word: 'departure', ipa: '/dɪˈpɑː.tʃər/', pos: 'noun', def: 'The act of leaving.', example: 'Departure is at 8 PM.', ar: 'مغادرة', zh: '出发', glyph: '🛫', theme: 'blue' },
+        { word: 'arrival', ipa: '/əˈraɪ.vəl/', pos: 'noun', def: 'The act of reaching a place.', example: 'Our arrival was delayed.', ar: 'وصول', zh: '到达', glyph: '🛬', theme: 'green' },
+        { word: 'backpack', ipa: '/ˈbæk.pæk/', pos: 'noun', def: 'A bag on your back.', example: 'She travels with a backpack.', ar: 'حقيبة ظهر', zh: '背包', glyph: '🎒', theme: 'coral' },
+      ],
+      B1: [
+        { word: 'itinerary', ipa: '/aɪˈtɪn.ər.ər.i/', pos: 'noun', def: 'A plan of a trip.', example: 'Check tomorrows itinerary.', glyph: '📋', theme: 'blue' },
+        { word: 'accommodation', ipa: '/əˌkɒm.əˈdeɪ.ʃən/', pos: 'noun', def: 'A place to stay.', example: 'We booked accommodation online.', glyph: '🏨', theme: 'purple' },
+        { word: 'destination', ipa: '/ˌdes.tɪˈneɪ.ʃən/', pos: 'noun', def: 'Where you travel to.', example: 'Our destination is Tokyo.', glyph: '📍', theme: 'red' },
+        { word: 'adventure', ipa: '/ədˈven.tʃər/', pos: 'noun', def: 'An exciting experience.', example: 'The hike was an adventure.', glyph: '🧗', theme: 'amber' },
+        { word: 'scenic', ipa: '/ˈsiː.nɪk/', pos: 'adjective', def: 'Having beautiful views.', example: 'The scenic route is longer.', glyph: '🏞️', theme: 'green' },
+        { word: 'local', ipa: '/ˈləʊ.kəl/', pos: 'adjective', def: 'Of the area youre in.', example: 'Try the local food.', glyph: '🏘️', theme: 'coral' },
+        { word: 'cuisine', ipa: '/kwɪˈziːn/', pos: 'noun', def: 'A style of cooking.', example: 'Thai cuisine is spicy.', glyph: '🍜', theme: 'coral' },
+        { word: 'landmark', ipa: '/ˈlænd.mɑːk/', pos: 'noun', def: 'A famous recognizable place.', example: 'The tower is a landmark.', glyph: '🗽', theme: 'gray' },
+        { word: 'border', ipa: '/ˈbɔː.dər/', pos: 'noun', def: 'Line between countries.', example: 'We crossed the border.', glyph: '🚧', theme: 'amber' },
+        { word: 'guide', ipa: '/ɡaɪd/', pos: 'noun', def: 'A person who shows the way.', example: 'Our guide spoke three languages.', glyph: '🧭', theme: 'blue' },
+        { word: 'deposit', ipa: '/dɪˈpɒz.ɪt/', pos: 'noun', def: 'Money paid in advance.', example: 'Pay a 20 percent deposit.', glyph: '💰', theme: 'green' },
+        { word: 'explore', ipa: '/ɪkˈsplɔːr/', pos: 'verb', def: 'To travel and discover.', example: 'Lets explore the old town.', glyph: '🔍', theme: 'teal' },
+      ],
+      B2: [
+        { word: 'excursion', ipa: '/ɪkˈskɜː.ʃən/', pos: 'noun', def: 'A short trip for pleasure.', example: 'The excursion included a boat.', glyph: '⛵', theme: 'blue' },
+        { word: 'picturesque', ipa: '/ˌpɪk.tʃərˈesk/', pos: 'adjective', def: 'Pretty in a charming way.', example: 'The village is picturesque.', glyph: '🏡', theme: 'pink' },
+        { word: 'nomadic', ipa: '/nəʊˈmæd.ɪk/', pos: 'adjective', def: 'Moving from place to place.', example: 'She leads a nomadic life.', glyph: '🐫', theme: 'amber' },
+        { word: 'voyage', ipa: '/ˈvɔɪ.ɪdʒ/', pos: 'noun', def: 'Long sea journey.', example: 'The voyage took weeks.', glyph: '🚢', theme: 'blue' },
+        { word: 'customs', ipa: '/ˈkʌs.təmz/', pos: 'noun', def: 'Border inspection officers.', example: 'Customs inspected our bags.', glyph: '🛃', theme: 'gray' },
+        { word: 'cosmopolitan', ipa: '/ˌkɒz.məˈpɒl.ɪ.tən/', pos: 'adjective', def: 'Including many cultures.', example: 'Singapore is cosmopolitan.', glyph: '🌆', theme: 'purple' },
+        { word: 'expedition', ipa: '/ˌek.spəˈdɪʃ.ən/', pos: 'noun', def: 'Organized journey for exploration.', example: 'The Antarctic expedition lasted months.', glyph: '⛺', theme: 'teal' },
+        { word: 'remote', ipa: '/rɪˈməʊt/', pos: 'adjective', def: 'Far from people.', example: 'We hiked to a remote lake.', glyph: '🏔️', theme: 'gray' },
+        { word: 'bustling', ipa: '/ˈbʌs.əl.ɪŋ/', pos: 'adjective', def: 'Full of busy activity.', example: 'The bustling market was colorful.', glyph: '🎪', theme: 'red' },
+        { word: 'exotic', ipa: '/ɪɡˈzɒt.ɪk/', pos: 'adjective', def: 'Strikingly unusual.', example: 'The island has exotic fruits.', glyph: '🥭', theme: 'amber' },
+        { word: 'panoramic', ipa: '/ˌpæn.əˈræm.ɪk/', pos: 'adjective', def: 'Showing a wide view.', example: 'The tower offers panoramic views.', glyph: '🌄', theme: 'green' },
+        { word: 'itinerant', ipa: '/aɪˈtɪn.ər.ənt/', pos: 'adjective', def: 'Traveling place to place.', example: 'Itinerant workers follow harvests.', glyph: '🚶‍♂️', theme: 'coral' },
+      ],
+      C1: [
+        { word: 'sojourn', ipa: '/ˈsɒdʒ.ɜːn/', pos: 'noun', def: 'A temporary stay.', example: 'Her Paris sojourn lasted a year.', glyph: '🏛️', theme: 'purple' },
+        { word: 'pilgrimage', ipa: '/ˈpɪl.ɡrɪ.mɪdʒ/', pos: 'noun', def: 'Journey to a holy place.', example: 'Many make the pilgrimage yearly.', glyph: '🕍', theme: 'amber' },
+        { word: 'trek', ipa: '/trek/', pos: 'noun', def: 'A long difficult journey.', example: 'The mountain trek was hard.', glyph: '🥾', theme: 'coral' },
+        { word: 'vestige', ipa: '/ˈves.tɪdʒ/', pos: 'noun', def: 'A small remaining part.', example: 'Ancient vestiges still stand.', glyph: '🏺', theme: 'gray' },
+        { word: 'wayfarer', ipa: '/ˈweɪ.feə.rər/', pos: 'noun', def: 'A traveler on foot.', example: 'The wayfarer rested at dusk.', glyph: '🧳', theme: 'teal' },
+        { word: 'odyssey', ipa: '/ˈɒd.ə.si/', pos: 'noun', def: 'Long eventful journey.', example: 'Her career was an odyssey.', glyph: '⛵', theme: 'blue' },
+        { word: 'enclave', ipa: '/ˈen.kleɪv/', pos: 'noun', def: 'Distinct area within a larger one.', example: 'The quarter is an artistic enclave.', glyph: '🏘️', theme: 'pink' },
+        { word: 'archipelago', ipa: '/ˌɑː.kɪˈpel.ə.ɡəʊ/', pos: 'noun', def: 'A group of islands.', example: 'Indonesia is a vast archipelago.', glyph: '🏝️', theme: 'blue' },
+        { word: 'eclectic', ipa: '/ɪˈklek.tɪk/', pos: 'adjective', def: 'Drawing from varied sources.', example: 'The city has eclectic architecture.', glyph: '🎨', theme: 'purple' },
+        { word: 'secluded', ipa: '/sɪˈkluː.dɪd/', pos: 'adjective', def: 'Quiet and away from others.', example: 'We found a secluded cove.', glyph: '🏝️', theme: 'green' },
+        { word: 'redolent', ipa: '/ˈred.əl.ənt/', pos: 'adjective', def: 'Strongly reminiscent.', example: 'The streets were redolent of spices.', glyph: '🌶️', theme: 'red' },
+        { word: 'meander', ipa: '/miˈæn.dər/', pos: 'verb', def: 'To follow a winding path.', example: 'We meandered through the old town.', glyph: '🏞️', theme: 'teal' },
+      ],
+      C2: [
+        { word: 'peripatetic', ipa: '/ˌper.ɪ.pəˈtet.ɪk/', pos: 'adjective', def: 'Traveling place to place.', example: 'She led a peripatetic life.', glyph: '🚶‍♀️', theme: 'coral' },
+        { word: 'denizen', ipa: '/ˈden.ɪ.zən/', pos: 'noun', def: 'An inhabitant of a place.', example: 'Forest denizens include deer.', glyph: '🦌', theme: 'green' },
+        { word: 'wanderlust', ipa: '/ˈwɒn.də.lʌst/', pos: 'noun', def: 'Strong desire to travel.', example: 'Her wanderlust took her far.', glyph: '🌍', theme: 'purple' },
+        { word: 'emigre', ipa: '/ˈem.ɪ.ɡreɪ/', pos: 'noun', def: 'A person who left their country.', example: 'The emigre founded a society.', glyph: '🛂', theme: 'blue' },
+        { word: 'verdant', ipa: '/ˈvɜː.dənt/', pos: 'adjective', def: 'Green with vegetation.', example: 'The verdant valley stretched wide.', glyph: '🌿', theme: 'green' },
+        { word: 'littoral', ipa: '/ˈlɪt.ər.əl/', pos: 'adjective', def: 'Relating to the shore.', example: 'Littoral ecosystems are rich.', glyph: '🏖️', theme: 'amber' },
+        { word: 'bucolic', ipa: '/bjuːˈkɒl.ɪk/', pos: 'adjective', def: 'Relating to countryside.', example: 'We stayed in a bucolic farmhouse.', glyph: '🌾', theme: 'amber' },
+        { word: 'crepuscular', ipa: '/krɪˈpʌs.kjə.lər/', pos: 'adjective', def: 'Of or resembling twilight.', example: 'Crepuscular animals emerge at dusk.', glyph: '🌆', theme: 'purple' },
+        { word: 'autochthonous', ipa: '/ɔːˈtɒk.θən.əs/', pos: 'adjective', def: 'Native to the place.', example: 'Autochthonous plants thrive here.', glyph: '🌱', theme: 'green' },
+        { word: 'liminal', ipa: '/ˈlɪm.ɪ.nəl/', pos: 'adjective', def: 'At a boundary or transition.', example: 'Airports feel liminal.', glyph: '🚪', theme: 'teal' },
+        { word: 'transmigration', ipa: '/ˌtrænz.maɪˈɡreɪ.ʃən/', pos: 'noun', def: 'Movement between places.', example: 'Seasonal transmigration defines the species.', glyph: '🦅', theme: 'blue' },
+        { word: 'chthonic', ipa: '/ˈkθɒn.ɪk/', pos: 'adjective', def: 'Relating to the underworld.', example: 'Chthonic caverns lie beneath.', glyph: '🕳️', theme: 'gray' },
+      ],
+    },
+  },
+};
+
+// ============================================================
+// APP LOGIC
+// ============================================================
+
+const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const LEVEL_INFO = {
+  A1: { name: 'Beginner', class: 'grad-A1' },
+  A2: { name: 'Elementary', class: 'grad-A2' },
+  B1: { name: 'Intermediate', class: 'grad-B1' },
+  B2: { name: 'Upper-Int.', class: 'grad-B2' },
+  C1: { name: 'Advanced', class: 'grad-C1' },
+  C2: { name: 'Proficient', class: 'grad-C2' },
+};
+
+// Icons (inline SVG strings)
+const ICONS = {
+  chevronRight: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+  chevronLeft: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+  heart: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+  shuffle: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>',
+  volume: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>',
+  volumeOff: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>',
+  check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  x: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  globe: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+  sparkles: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3L12 3z"/></svg>',
+  zap: '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+};
+
+// App state
+const state = {
+  screen: 'home',
+  currentSet: 'general',
+  currentLevel: null,
+  cardIndex: 0,
+  flipped: false,
+  showTranslations: false,
+  shuffled: false,
+  shuffledOrder: null,
+  progress: {},
+  streak: 0,
+  lastStudied: null,
+  favorites: [],
+  xp: 0,
+  ttsEnabled: true,
+  ttsAvailable: false,
+  photoMap: {}, // word_key -> photo URL if available
+  quizQuestions: [],
+  quizIndex: 0,
+  quizScore: 0,
+  selectedAnswer: null,
+  quizAnswered: false,
+};
+
+// Storage (localStorage for GitHub version)
+const STORAGE_KEY = 'cefr-flashcards-v1';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      state.progress = data.progress || {};
+      state.streak = data.streak || 0;
+      state.lastStudied = data.lastStudied || null;
+      state.favorites = data.favorites || [];
+      state.xp = data.xp || 0;
+      state.ttsEnabled = data.ttsEnabled !== false;
+    }
+  } catch (e) { console.warn('Load failed', e); }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      progress: state.progress,
+      streak: state.streak,
+      lastStudied: state.lastStudied,
+      favorites: state.favorites,
+      xp: state.xp,
+      ttsEnabled: state.ttsEnabled,
+    }));
+  } catch (e) { console.warn('Save failed', e); }
+}
+
+// Try to load photos from photos/ folder
+// Photos are looked up by: photos/{set}/{level}/{word}.jpg (or .png, .webp)
+async function resolvePhoto(setKey, level, word) {
+  const key = `${setKey}/${level}/${word}`;
+  if (state.photoMap[key] !== undefined) return state.photoMap[key];
+  
+  const extensions = ['jpg', 'jpeg', 'png', 'webp'];
+  for (const ext of extensions) {
+    const url = `photos/${setKey}/${level}/${word}.${ext}`;
+    try {
+      const res = await fetch(url, { method: 'HEAD' });
+      if (res.ok) {
+        state.photoMap[key] = url;
+        return url;
+      }
+    } catch (e) {}
+  }
+  state.photoMap[key] = null;
+  return null;
+}
+
+// TTS
+function speak(text, rate = 0.9) {
+  if (!state.ttsEnabled || !state.ttsAvailable) return;
+  try {
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US';
+    utter.rate = rate;
+    utter.pitch = 1;
+    window.speechSynthesis.speak(utter);
+  } catch (e) {}
+}
+
+function toggleTts() {
+  state.ttsEnabled = !state.ttsEnabled;
+  saveState();
+  if (!state.ttsEnabled) window.speechSynthesis?.cancel();
+  render();
+}
+
+function updateStreak() {
+  const today = new Date().toDateString();
+  if (state.lastStudied !== today) {
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    state.streak = state.lastStudied === yesterday ? state.streak + 1 : 1;
+    state.lastStudied = today;
+    saveState();
+  }
+}
+
+// Stats helpers
+function getLevelStats(setKey, level) {
+  const cards = window.WORD_SETS[setKey].levels[level];
+  let mastered = 0, learning = 0, hard = 0;
+  cards.forEach((_, idx) => {
+    const status = state.progress[`${setKey}-${level}-${idx}`];
+    if (status === 'mastered') mastered++;
+    else if (status === 'learning') learning++;
+    else if (status === 'hard') hard++;
+  });
+  return { mastered, learning, hard, total: cards.length };
+}
+
+function getSetStats(setKey) {
+  let mastered = 0, total = 0;
+  LEVELS.forEach(lvl => {
+    const s = getLevelStats(setKey, lvl);
+    mastered += s.mastered;
+    total += s.total;
+  });
+  return { mastered, total };
+}
+
+function getCards(setKey, level) {
+  const cards = window.WORD_SETS[setKey].levels[level];
+  if (state.shuffled && state.shuffledOrder) return state.shuffledOrder.map(i => cards[i]);
+  return cards;
+}
+
+// ============ RENDER ============
+function showScreen(id) {
+  ['home', 'study', 'results', 'quiz', 'loading'].forEach(s => {
+    document.getElementById(s + '-screen').classList.add('hidden');
+  });
+  document.getElementById(id + '-screen').classList.remove('hidden');
+  state.screen = id;
+  window.scrollTo(0, 0);
+}
+
+function renderHome() {
+  // Stats
+  const totalMastered = Object.values(state.progress).filter(p => p === 'mastered').length;
+  document.getElementById('stat-streak').textContent = state.streak;
+  document.getElementById('stat-xp').textContent = state.xp;
+  document.getElementById('stat-mastered').textContent = totalMastered;
+
+  // TTS toggle
+  const ttsBtn = document.getElementById('tts-toggle');
+  ttsBtn.classList.toggle('active', state.ttsEnabled);
+  ttsBtn.innerHTML = state.ttsEnabled ? ICONS.volume.replace('14', '18').replace('14', '18') : ICONS.volumeOff.replace('14', '18').replace('14', '18');
+  ttsBtn.onclick = toggleTts;
+
+  // Word sets
+  const setGrid = document.getElementById('set-grid');
+  setGrid.innerHTML = '';
+  Object.entries(window.WORD_SETS).forEach(([key, set]) => {
+    const stats = getSetStats(key);
+    const pct = Math.round((stats.mastered / stats.total) * 100);
+    const isActive = state.currentSet === key;
+    const btn = document.createElement('button');
+    btn.className = 'set-card' + (isActive ? ' active' : '');
+    btn.innerHTML = `
+      <div class="set-icon" style="background: ${set.iconBg}; color: white;">${set.icon}</div>
+      <div class="set-info">
+        <div class="set-name">${set.name}</div>
+        <div class="set-desc">${set.desc} · ${pct}% mastered</div>
+      </div>
+      ${isActive ? `<div style="color: #667eea;">${ICONS.check}</div>` : ''}
+    `;
+    btn.onclick = () => { state.currentSet = key; render(); };
+    setGrid.appendChild(btn);
+  });
+
+  // Levels label
+  document.getElementById('levels-label').textContent = `Levels · ${window.WORD_SETS[state.currentSet].name}`;
+
+  // Level cards
+  const levelGrid = document.getElementById('level-grid');
+  levelGrid.innerHTML = '';
+  LEVELS.forEach(level => {
+    const info = LEVEL_INFO[level];
+    const stats = getLevelStats(state.currentSet, level);
+    const pct = Math.round((stats.mastered / stats.total) * 100);
+    const hasTranslations = level === 'A1' || level === 'A2';
+    const btn = document.createElement('button');
+    btn.className = 'level-card';
+    btn.innerHTML = `
+      <div class="level-badge ${info.class}">${level}</div>
+      <div class="level-info">
+        <div class="level-header">
+          <span class="level-name">${info.name}</span>
+          ${hasTranslations ? '<span class="level-tag">AR · 中</span>' : ''}
+          <span class="level-count">· ${stats.total} words</span>
+        </div>
+        <div class="progress-row">
+          <div class="progress-bar">
+            <div class="progress-fill ${info.class}" style="width: ${pct}%;"></div>
+          </div>
+          <div class="progress-text">${stats.mastered}/${stats.total}</div>
+        </div>
+      </div>
+      <span class="chevron">${ICONS.chevronRight}</span>
+    `;
+    btn.onclick = () => startStudying(level);
+    levelGrid.appendChild(btn);
+  });
+
+  // Favorites
+  const favContainer = document.getElementById('fav-count-container');
+  favContainer.innerHTML = state.favorites.length > 0 
+    ? `<div class="fav-count">${ICONS.heart.replace('18', '14').replace('18', '14')} ${state.favorites.length} favorited ${state.favorites.length === 1 ? 'word' : 'words'}</div>`
+    : '';
+}
+
+function startStudying(level) {
+  state.currentLevel = level;
+  state.cardIndex = 0;
+  state.flipped = false;
+  state.shuffled = false;
+  state.shuffledOrder = null;
+  state.showTranslations = false;
+  render();
+  showScreen('study');
+}
+
+function handleShuffle() {
+  const cards = window.WORD_SETS[state.currentSet].levels[state.currentLevel];
+  state.shuffledOrder = [...Array(cards.length).keys()].sort(() => Math.random() - 0.5);
+  state.shuffled = true;
+  state.cardIndex = 0;
+  state.flipped = false;
+  render();
+}
+
+function markCard(status) {
+  const cards = window.WORD_SETS[state.currentSet].levels[state.currentLevel];
+  const actualIdx = state.shuffled && state.shuffledOrder ? state.shuffledOrder[state.cardIndex] : state.cardIndex;
+  const key = `${state.currentSet}-${state.currentLevel}-${actualIdx}`;
+  state.progress[key] = status;
+  state.xp += status === 'mastered' ? 10 : status === 'learning' ? 3 : 2;
+  updateStreak();
+  saveState();
+  
+  if (state.cardIndex < cards.length - 1) {
+    state.cardIndex++;
+    state.flipped = false;
+    render();
+  } else {
+    renderResults();
+    showScreen('results');
+  }
+}
+
+function toggleFavorite() {
+  const actualIdx = state.shuffled && state.shuffledOrder ? state.shuffledOrder[state.cardIndex] : state.cardIndex;
+  const key = `${state.currentSet}-${state.currentLevel}-${actualIdx}`;
+  state.favorites = state.favorites.includes(key) 
+    ? state.favorites.filter(f => f !== key)
+    : [...state.favorites, key];
+  saveState();
+  render();
+}
+
+async function renderStudy() {
+  const cards = getCards(state.currentSet, state.currentLevel);
+  const card = cards[state.cardIndex];
+  const actualIdx = state.shuffled && state.shuffledOrder ? state.shuffledOrder[state.cardIndex] : state.cardIndex;
+  const cardKey = `${state.currentSet}-${state.currentLevel}-${actualIdx}`;
+  const isFavorite = state.favorites.includes(cardKey);
+  const status = state.progress[cardKey] || 'new';
+  const hasTranslations = state.currentLevel === 'A1' || state.currentLevel === 'A2';
+  const info = LEVEL_INFO[state.currentLevel];
+
+  // Try to load photo
+  const photoUrl = await resolvePhoto(state.currentSet, state.currentLevel, card.word);
+
+  const screen = document.getElementById('study-screen');
+  screen.innerHTML = `
+    <div class="study-top">
+      <button class="back-btn" id="back-to-home">${ICONS.chevronLeft} Home</button>
+      <div class="level-pill ${info.class}">${state.currentLevel} · ${state.cardIndex + 1}/${cards.length}</div>
+      <div class="top-actions">
+        ${state.ttsAvailable ? `<button class="top-action ${state.ttsEnabled ? 'on' : ''}" id="toggle-tts">${state.ttsEnabled ? ICONS.volume : ICONS.volumeOff}</button>` : ''}
+        <button class="top-action ${state.shuffled ? 'on' : ''}" id="shuffle-btn">${ICONS.shuffle}</button>
+      </div>
+    </div>
+    <div class="global-progress">
+      <div class="progress-fill ${info.class}" style="width: ${((state.cardIndex + 1) / cards.length) * 100}%;"></div>
+    </div>
+
+    <div class="flashcard" id="flashcard">
+      <div class="flashcard-image theme-${card.theme}">
+        ${photoUrl ? `<img class="photo-img" src="${photoUrl}" alt="${card.word}" onerror="this.style.display='none'">` : ''}
+        <div class="glyph">${card.glyph}</div>
+        <button class="fav-btn" id="fav-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="${isFavorite ? '#ec4899' : 'none'}" stroke="${isFavorite ? '#ec4899' : '#6b7280'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        ${status !== 'new' ? `<div class="status-pill ${status}">${status}</div>` : ''}
+      </div>
+      <div class="card-body">
+        ${state.flipped ? `
+          <div class="card-back">
+            <div class="back-header">
+              <div class="word word-sm">${card.word}</div>
+              ${state.ttsAvailable && state.ttsEnabled ? `<button class="speak-btn small" id="speak-word">${ICONS.volume}</button>` : ''}
+            </div>
+            <div class="back-meta">${card.ipa} · <i>${card.pos}</i></div>
+            <div class="definition">${card.def}</div>
+            <div class="example">
+              <div class="example-text">"${card.example}"</div>
+              ${state.ttsAvailable && state.ttsEnabled ? `<button class="example-speak" id="speak-example">${ICONS.volume}</button>` : ''}
+            </div>
+            ${hasTranslations ? `
+              <button class="translations-toggle" id="toggle-translations">${ICONS.globe} ${state.showTranslations ? 'Hide translations' : 'Show translations'}</button>
+              ${state.showTranslations ? `
+                <div class="translations">
+                  <div class="translation ar">
+                    <div class="translation-label">العربية</div>
+                    <div class="translation-text" dir="rtl">${card.ar}</div>
+                  </div>
+                  <div class="translation zh">
+                    <div class="translation-label">中文</div>
+                    <div class="translation-text">${card.zh}</div>
+                  </div>
+                </div>
+              ` : ''}
+            ` : ''}
+          </div>
+        ` : `
+          <div class="card-front">
+            <div class="word-row">
+              <div class="word">${card.word}</div>
+              ${state.ttsAvailable && state.ttsEnabled ? `<button class="speak-btn" id="speak-word">${ICONS.volume}</button>` : ''}
+            </div>
+            <div class="ipa">${card.ipa}</div>
+            <div class="pos">${card.pos}</div>
+            <div class="hint">Tap card to reveal</div>
+          </div>
+        `}
+      </div>
+    </div>
+
+    ${state.flipped ? `
+      <div class="actions">
+        <button class="action hard" id="mark-hard">Hard</button>
+        <button class="action learning" id="mark-learning">Learning</button>
+        <button class="action mastered" id="mark-mastered">${ICONS.check} Mastered</button>
+      </div>
+    ` : `
+      <div class="nav">
+        <button class="nav-btn" id="prev-btn" ${state.cardIndex === 0 ? 'disabled' : ''}>${ICONS.chevronLeft} Prev</button>
+        <div class="nav-hint">Tap to see details</div>
+        <button class="nav-btn" id="next-btn" ${state.cardIndex === cards.length - 1 ? 'disabled' : ''}>Next ${ICONS.chevronRight}</button>
+      </div>
+    `}
+  `;
+
+  // Bind events
+  document.getElementById('back-to-home').onclick = () => { state.flipped = false; window.speechSynthesis?.cancel(); render(); showScreen('home'); };
+  document.getElementById('flashcard').onclick = () => { state.flipped = !state.flipped; render(); };
+  document.getElementById('fav-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(); };
+  if (document.getElementById('toggle-tts')) document.getElementById('toggle-tts').onclick = toggleTts;
+  document.getElementById('shuffle-btn').onclick = handleShuffle;
+  
+  if (document.getElementById('speak-word')) document.getElementById('speak-word').onclick = (e) => { e.stopPropagation(); speak(card.word); };
+  if (document.getElementById('speak-example')) document.getElementById('speak-example').onclick = (e) => { e.stopPropagation(); speak(card.example); };
+  if (document.getElementById('toggle-translations')) document.getElementById('toggle-translations').onclick = (e) => { e.stopPropagation(); state.showTranslations = !state.showTranslations; render(); };
+  
+  if (document.getElementById('mark-hard')) document.getElementById('mark-hard').onclick = (e) => { e.stopPropagation(); markCard('hard'); };
+  if (document.getElementById('mark-learning')) document.getElementById('mark-learning').onclick = (e) => { e.stopPropagation(); markCard('learning'); };
+  if (document.getElementById('mark-mastered')) document.getElementById('mark-mastered').onclick = (e) => { e.stopPropagation(); markCard('mastered'); };
+  
+  if (document.getElementById('prev-btn')) document.getElementById('prev-btn').onclick = (e) => { e.stopPropagation(); if (state.cardIndex > 0) { state.cardIndex--; state.flipped = false; render(); }};
+  if (document.getElementById('next-btn')) document.getElementById('next-btn').onclick = (e) => { e.stopPropagation(); if (state.cardIndex < cards.length - 1) { state.cardIndex++; state.flipped = false; render(); }};
+}
+
+function renderResults() {
+  const stats = getLevelStats(state.currentSet, state.currentLevel);
+  const info = LEVEL_INFO[state.currentLevel];
+  const screen = document.getElementById('results-screen');
+  screen.innerHTML = `
+    <div class="results-wrap">
+      <div class="trophy">${ICONS.sparkles}</div>
+      <div class="results-title">Session complete!</div>
+      <div class="results-sub">${window.WORD_SETS[state.currentSet].name} · ${state.currentLevel}</div>
+      <div class="results-stats">
+        <div class="rstat mastered">
+          <div class="rstat-label">Mastered</div>
+          <div class="rstat-value">${stats.mastered}</div>
+        </div>
+        <div class="rstat learning">
+          <div class="rstat-label">Learning</div>
+          <div class="rstat-value">${stats.learning}</div>
+        </div>
+        <div class="rstat hard">
+          <div class="rstat-label">Hard</div>
+          <div class="rstat-value">${stats.hard}</div>
+        </div>
+      </div>
+      <button class="btn-primary" id="start-quiz">${ICONS.zap} Take the quick quiz</button>
+      <button class="btn-secondary" id="study-again">Study again</button>
+      <button class="btn-text" id="back-home">Back to home</button>
+    </div>
+  `;
+  document.getElementById('start-quiz').onclick = startQuiz;
+  document.getElementById('study-again').onclick = () => startStudying(state.currentLevel);
+  document.getElementById('back-home').onclick = () => { render(); showScreen('home'); };
+}
+
+function startQuiz() {
+  const cards = window.WORD_SETS[state.currentSet].levels[state.currentLevel];
+  const numQuestions = Math.min(5, cards.length);
+  const questionIndices = [...Array(cards.length).keys()].sort(() => Math.random() - 0.5).slice(0, numQuestions);
+  state.quizQuestions = questionIndices.map(idx => {
+    const correct = cards[idx];
+    const wrongOptions = cards.filter((_, i) => i !== idx).sort(() => Math.random() - 0.5).slice(0, 3);
+    const options = [correct, ...wrongOptions].sort(() => Math.random() - 0.5);
+    const type = Math.random() > 0.5 ? 'word' : 'picture';
+    return { correct, options, type };
+  });
+  state.quizIndex = 0;
+  state.quizScore = 0;
+  state.selectedAnswer = null;
+  state.quizAnswered = false;
+  renderQuiz();
+  showScreen('quiz');
+}
+
+function answerQuiz(option) {
+  if (state.quizAnswered) return;
+  state.selectedAnswer = option;
+  state.quizAnswered = true;
+  const q = state.quizQuestions[state.quizIndex];
+  if (option.word === q.correct.word) {
+    state.quizScore++;
+    state.xp += 5;
+    saveState();
+    speak(option.word);
+  }
+  renderQuiz();
+}
+
+function nextQuizQuestion() {
+  if (state.quizIndex < state.quizQuestions.length - 1) {
+    state.quizIndex++;
+    state.selectedAnswer = null;
+    state.quizAnswered = false;
+    renderQuiz();
+  } else {
+    render();
+    showScreen('home');
+  }
+}
+
+async function renderQuiz() {
+  const q = state.quizQuestions[state.quizIndex];
+  const info = LEVEL_INFO[state.currentLevel];
+  const screen = document.getElementById('quiz-screen');
+
+  // Load photo for correct answer if quiz is picture type
+  let correctPhotoUrl = null;
+  if (q.type === 'picture') {
+    correctPhotoUrl = await resolvePhoto(state.currentSet, state.currentLevel, q.correct.word);
+  }
+
+  const optionsHtml = q.type === 'picture' 
+    ? q.options.map(opt => {
+        const isCorrect = opt.word === q.correct.word;
+        const isSelected = state.selectedAnswer && state.selectedAnswer.word === opt.word;
+        let cls = 'quiz-opt';
+        if (state.quizAnswered) {
+          if (isCorrect) cls += ' correct';
+          else if (isSelected) cls += ' wrong';
+        }
+        return `
+          <button class="${cls}" data-word="${opt.word}" ${state.quizAnswered ? 'disabled' : ''}>
+            <span>${opt.word}</span>
+            ${state.quizAnswered && isCorrect ? `<span style="color:#10b981;">${ICONS.check}</span>` : ''}
+            ${state.quizAnswered && isSelected && !isCorrect ? `<span style="color:#ef4444;">${ICONS.x}</span>` : ''}
+          </button>
+        `;
+      }).join('')
+    : await Promise.all(q.options.map(async (opt) => {
+        const isCorrect = opt.word === q.correct.word;
+        const isSelected = state.selectedAnswer && state.selectedAnswer.word === opt.word;
+        const optPhoto = await resolvePhoto(state.currentSet, state.currentLevel, opt.word);
+        let cls = 'quiz-opt quiz-opt-pic theme-' + opt.theme;
+        if (state.quizAnswered) {
+          if (isCorrect) cls += ' correct';
+          else if (isSelected) cls += ' wrong';
+          else cls += ' dim';
+        }
+        return `
+          <button class="${cls}" data-word="${opt.word}" ${state.quizAnswered ? 'disabled' : ''}>
+            ${optPhoto ? `<img class="photo-img" src="${optPhoto}" alt="">` : ''}
+            <div class="glyph">${opt.glyph}</div>
+            ${state.quizAnswered && isCorrect ? `<div class="quiz-check ok">${ICONS.check}</div>` : ''}
+            ${state.quizAnswered && isSelected && !isCorrect ? `<div class="quiz-check no">${ICONS.x}</div>` : ''}
+          </button>
+        `;
+      })).then(arr => arr.join(''));
+
+  screen.innerHTML = `
+    <div class="quiz-top">
+      <div class="quiz-counter">Question ${state.quizIndex + 1} of ${state.quizQuestions.length}</div>
+      <div class="quiz-score">⭐ ${state.quizScore}</div>
+    </div>
+    <div class="global-progress">
+      <div class="progress-fill ${info.class}" style="width: ${((state.quizIndex + 1) / state.quizQuestions.length) * 100}%;"></div>
+    </div>
+
+    ${q.type === 'picture' ? `
+      <div class="quiz-question">Which word matches this picture?</div>
+      <div class="quiz-picture theme-${q.correct.theme}">
+        ${correctPhotoUrl ? `<img class="photo-img" src="${correctPhotoUrl}" alt="">` : ''}
+        <div class="glyph">${q.correct.glyph}</div>
+      </div>
+      <div class="quiz-options">${optionsHtml}</div>
+    ` : `
+      <div class="quiz-question">Which picture matches this word?</div>
+      <div class="quiz-word-prompt">
+        <div>
+          <div class="word word-sm">${q.correct.word}</div>
+          <div class="ipa">${q.correct.ipa}</div>
+        </div>
+        ${state.ttsAvailable && state.ttsEnabled ? `<button class="speak-btn" id="quiz-speak">${ICONS.volume}</button>` : ''}
+      </div>
+      <div class="quiz-options">${optionsHtml}</div>
+    `}
+
+    ${state.quizAnswered ? `
+      <div class="feedback ${state.selectedAnswer.word === q.correct.word ? 'ok' : 'no'}">
+        ${state.selectedAnswer.word === q.correct.word 
+          ? `✓ Correct! +5 XP. ${q.correct.def}` 
+          : `✗ Answer: "${q.correct.word}" — ${q.correct.def}`}
+      </div>
+      <button class="btn-primary" id="quiz-next">${state.quizIndex < state.quizQuestions.length - 1 ? 'Next question' : 'Finish'}</button>
+    ` : ''}
+  `;
+
+  // Bind events
+  screen.querySelectorAll('.quiz-opt').forEach(btn => {
+    btn.onclick = () => {
+      const word = btn.getAttribute('data-word');
+      const opt = q.options.find(o => o.word === word);
+      answerQuiz(opt);
+    };
+  });
+  if (document.getElementById('quiz-next')) document.getElementById('quiz-next').onclick = nextQuizQuestion;
+  if (document.getElementById('quiz-speak')) document.getElementById('quiz-speak').onclick = () => speak(q.correct.word);
+}
+
+// Main render dispatcher
+function render() {
+  if (state.screen === 'home') { renderHome(); showScreen('home'); }
+  else if (state.screen === 'study') { renderStudy(); showScreen('study'); }
+}
+
+// Init
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  state.ttsAvailable = true;
+}
+loadState();
+render();
+showScreen('home');
+</script>
