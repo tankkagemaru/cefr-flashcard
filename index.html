@@ -1267,7 +1267,7 @@ function updateStreak() {
 
 // Stats helpers
 function getLevelStats(setKey, level) {
-  const cards = window.WORD_SETS[setKey].levels[level];
+  const cards = window.WORD_SETS?.[setKey]?.levels?.[level] || [];
   let mastered = 0, learning = 0, hard = 0;
   cards.forEach((_, idx) => {
     const status = state.progress[`${setKey}-${level}-${idx}`];
@@ -1289,7 +1289,7 @@ function getSetStats(setKey) {
 }
 
 function getCards(setKey, level) {
-  const cards = window.WORD_SETS[setKey].levels[level];
+  const cards = window.WORD_SETS?.[setKey]?.levels?.[level] || [];
   if (state.shuffled && state.shuffledOrder) return state.shuffledOrder.map(i => cards[i]);
   return cards;
 }
@@ -1380,6 +1380,18 @@ function renderHome() {
 }
 
 function startStudying(level) {
+  const cards = getCards(state.currentSet, level);
+  if (!cards.length) {
+    const screen = document.getElementById('study-screen');
+    screen.innerHTML = `
+      <div class="error-box">
+        <h3>No cards found for this level</h3>
+        <p>Please add words for <code>${state.currentSet}/${level}</code> in <code>words.js</code> or <code>index.html</code>.</p>
+      </div>
+    `;
+    showScreen('study');
+    return;
+  }
   state.currentLevel = level;
   state.cardIndex = 0;
   state.flipped = false;
@@ -1391,7 +1403,8 @@ function startStudying(level) {
 }
 
 function handleShuffle() {
-  const cards = window.WORD_SETS[state.currentSet].levels[state.currentLevel];
+  const cards = getCards(state.currentSet, state.currentLevel);
+  if (!cards.length) return;
   state.shuffledOrder = [...Array(cards.length).keys()].sort(() => Math.random() - 0.5);
   state.shuffled = true;
   state.cardIndex = 0;
@@ -1400,7 +1413,8 @@ function handleShuffle() {
 }
 
 function markCard(status) {
-  const cards = window.WORD_SETS[state.currentSet].levels[state.currentLevel];
+  const cards = getCards(state.currentSet, state.currentLevel);
+  if (!cards.length) return;
   const actualIdx = state.shuffled && state.shuffledOrder ? state.shuffledOrder[state.cardIndex] : state.cardIndex;
   const key = `${state.currentSet}-${state.currentLevel}-${actualIdx}`;
   state.progress[key] = status;
@@ -1431,6 +1445,24 @@ function toggleFavorite() {
 async function renderStudy() {
   const cards = getCards(state.currentSet, state.currentLevel);
   const card = cards[state.cardIndex];
+  if (!card) {
+    const screen = document.getElementById('study-screen');
+    screen.innerHTML = `
+      <div class="error-box">
+        <h3>Could not load this card</h3>
+        <p>The selected level appears empty or invalid. Please go back and choose another level.</p>
+        <button class="btn-primary" id="fallback-home">Back to home</button>
+      </div>
+    `;
+    document.getElementById('fallback-home').onclick = () => {
+      state.currentLevel = null;
+      state.cardIndex = 0;
+      state.flipped = false;
+      renderHome();
+      showScreen('home');
+    };
+    return;
+  }
   const actualIdx = state.shuffled && state.shuffledOrder ? state.shuffledOrder[state.cardIndex] : state.cardIndex;
   const cardKey = `${state.currentSet}-${state.currentLevel}-${actualIdx}`;
   const isFavorite = state.favorites.includes(cardKey);
@@ -1575,7 +1607,12 @@ function renderResults() {
 }
 
 function startQuiz() {
-  const cards = window.WORD_SETS[state.currentSet].levels[state.currentLevel];
+  const cards = getCards(state.currentSet, state.currentLevel);
+  if (!cards.length) {
+    renderHome();
+    showScreen('home');
+    return;
+  }
   const numQuestions = Math.min(5, cards.length);
   const questionIndices = [...Array(cards.length).keys()].sort(() => Math.random() - 0.5).slice(0, numQuestions);
   state.quizQuestions = questionIndices.map(idx => {
@@ -1623,6 +1660,24 @@ async function renderQuiz() {
   const q = state.quizQuestions[state.quizIndex];
   const info = LEVEL_INFO[state.currentLevel];
   const screen = document.getElementById('quiz-screen');
+  if (!q || !info) {
+    screen.innerHTML = `
+      <div class="error-box">
+        <h3>Quiz is unavailable</h3>
+        <p>We couldn't load quiz questions for this level. Please return home and start a new study session.</p>
+        <button class="btn-primary" id="quiz-back-home">Back to home</button>
+      </div>
+    `;
+    document.getElementById('quiz-back-home').onclick = () => {
+      state.quizQuestions = [];
+      state.quizIndex = 0;
+      state.quizAnswered = false;
+      state.selectedAnswer = null;
+      renderHome();
+      showScreen('home');
+    };
+    return;
+  }
 
   // Load photo for correct answer if quiz is picture type
   let correctPhotoUrl = null;
@@ -1721,6 +1776,9 @@ async function renderQuiz() {
 function render() {
   if (state.screen === 'home') { renderHome(); showScreen('home'); }
   else if (state.screen === 'study') { renderStudy(); showScreen('study'); }
+  else if (state.screen === 'results') { renderResults(); showScreen('results'); }
+  else if (state.screen === 'quiz') { renderQuiz(); showScreen('quiz'); }
+  else { renderHome(); showScreen('home'); }
 }
 
 // Init
