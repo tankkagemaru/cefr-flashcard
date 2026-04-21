@@ -1304,6 +1304,22 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 
+function renderScreenError(screenId, title, err) {
+  const screen = document.getElementById(screenId);
+  if (!screen) return;
+  const detail = err && err.message ? err.message : String(err || 'Unknown error');
+  screen.innerHTML = `
+    <div class="error-box">
+      <h3>${title}</h3>
+      <p>Something went wrong while rendering this screen.</p>
+      <p><code>${detail}</code></p>
+      <button class="btn-primary" id="error-back-home">Back to home</button>
+    </div>
+  `;
+  const btn = document.getElementById('error-back-home');
+  if (btn) btn.onclick = () => { renderHome(); showScreen('home'); };
+}
+
 function renderHome() {
   // Stats
   const totalMastered = Object.values(state.progress).filter(p => p === 'mastered').length;
@@ -1442,7 +1458,7 @@ function toggleFavorite() {
   render();
 }
 
-async function renderStudy() {
+function renderStudy() {
   const cards = getCards(state.currentSet, state.currentLevel);
   const card = cards[state.cardIndex];
   if (!card) {
@@ -1579,6 +1595,8 @@ async function renderStudy() {
     if (!img) return;
     img.src = photoUrl;
     img.style.display = '';
+  }).catch(err => {
+    console.warn('Photo load failed', err);
   });
 }
 
@@ -1784,9 +1802,15 @@ async function renderQuiz() {
 // Main render dispatcher
 function render() {
   if (state.screen === 'home') { renderHome(); showScreen('home'); }
-  else if (state.screen === 'study') { renderStudy(); showScreen('study'); }
+  else if (state.screen === 'study') {
+    try { renderStudy(); } catch (err) { renderScreenError('study-screen', 'Could not open this level', err); }
+    showScreen('study');
+  }
   else if (state.screen === 'results') { renderResults(); showScreen('results'); }
-  else if (state.screen === 'quiz') { renderQuiz(); showScreen('quiz'); }
+  else if (state.screen === 'quiz') {
+    renderQuiz().catch(err => renderScreenError('quiz-screen', 'Could not load quiz', err));
+    showScreen('quiz');
+  }
   else { renderHome(); showScreen('home'); }
 }
 
