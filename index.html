@@ -1414,8 +1414,8 @@ function startStudying(level) {
   state.shuffled = false;
   state.shuffledOrder = null;
   state.showTranslations = false;
+  state.screen = 'study';
   render();
-  showScreen('study');
 }
 
 function handleShuffle() {
@@ -1569,7 +1569,12 @@ function renderStudy() {
   `;
 
   // Bind events
-  document.getElementById('back-to-home').onclick = () => { state.flipped = false; window.speechSynthesis?.cancel(); render(); showScreen('home'); };
+  document.getElementById('back-to-home').onclick = () => {
+    state.flipped = false;
+    window.speechSynthesis?.cancel();
+    state.screen = 'home';
+    render();
+  };
   document.getElementById('flashcard').onclick = () => { state.flipped = !state.flipped; render(); };
   document.getElementById('fav-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(); };
   if (document.getElementById('toggle-tts')) document.getElementById('toggle-tts').onclick = toggleTts;
@@ -1630,14 +1635,17 @@ function renderResults() {
   `;
   document.getElementById('start-quiz').onclick = startQuiz;
   document.getElementById('study-again').onclick = () => startStudying(state.currentLevel);
-  document.getElementById('back-home').onclick = () => { render(); showScreen('home'); };
+  document.getElementById('back-home').onclick = () => {
+    state.screen = 'home';
+    render();
+  };
 }
 
 function startQuiz() {
   const cards = getCards(state.currentSet, state.currentLevel);
   if (!cards.length) {
-    renderHome();
-    showScreen('home');
+    state.screen = 'home';
+    render();
     return;
   }
   const numQuestions = Math.min(5, cards.length);
@@ -1653,8 +1661,8 @@ function startQuiz() {
   state.quizScore = 0;
   state.selectedAnswer = null;
   state.quizAnswered = false;
-  renderQuiz();
-  showScreen('quiz');
+  state.screen = 'quiz';
+  render();
 }
 
 function answerQuiz(option) {
@@ -1678,8 +1686,8 @@ function nextQuizQuestion() {
     state.quizAnswered = false;
     renderQuiz();
   } else {
+    state.screen = 'home';
     render();
-    showScreen('home');
   }
 }
 
