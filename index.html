@@ -340,8 +340,42 @@
     font-family: 'SF Mono', Consolas, monospace;
     font-size: 14px;
     color: #6b7280;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
+  .simple-phonetic {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+    border: 1.5px solid #fcd34d;
+  }
+  .simple-phonetic-label {
+    font-size: 9px;
+    font-weight: 800;
+    color: #78350f;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .simple-phonetic-text {
+    font-size: 15px;
+    font-weight: 700;
+    color: #78350f;
+    letter-spacing: 0.5px;
+  }
+  .simple-phonetic-speak {
+    width: 24px; height: 24px;
+    border: none;
+    background: #78350f;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s;
+  }
+  .simple-phonetic-speak:hover { transform: scale(1.12); }
   .pos {
     display: inline-block;
     font-size: 11px;
@@ -762,11 +796,6 @@
     <div class="level-grid" id="level-grid"></div>
 
     <div id="fav-count-container"></div>
-
-    <div class="info-banner">
-      <span>📝</span>
-      <div><strong>Edit words:</strong> change <code>words.js</code> in your repo to add more sets or translations. See the README for details.</div>
-    </div>
   </div>
 
   <!-- STUDY SCREEN -->
@@ -1235,17 +1264,126 @@ async function resolvePhoto(setKey, level, word) {
   return null;
 }
 
-// TTS
+// TTS — picks the best available English voice
+let preferredVoice = null;
+
+function selectBestVoice() {
+  if (!state.ttsAvailable) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return null;
+
+  // Priority list — highest quality neural/premium voices first
+  const priorities = [
+    // macOS / iOS premium voices
+    v => v.name === 'Samantha' && v.lang.startsWith('en'),
+    v => v.name === 'Karen' && v.lang.startsWith('en'),
+    v => v.name === 'Moira' && v.lang.startsWith('en'),
+    v => v.name === 'Daniel' && v.lang.startsWith('en'),
+    // Google neural voices (Chrome, Android)
+    v => v.name.includes('Google') && v.name.includes('US English'),
+    v => v.name.includes('Google') && v.name.includes('UK English Female'),
+    v => v.name.includes('Google') && v.lang === 'en-US',
+    v => v.name.includes('Google') && v.lang.startsWith('en'),
+    // Microsoft natural voices (Edge, Windows)
+    v => v.name.includes('Microsoft') && v.name.includes('Aria'),
+    v => v.name.includes('Microsoft') && v.name.includes('Jenny'),
+    v => v.name.includes('Microsoft') && v.name.includes('Natural'),
+    v => v.name.includes('Microsoft') && v.lang.startsWith('en'),
+    // Any premium/enhanced marker
+    v => /premium|enhanced|neural/i.test(v.name) && v.lang.startsWith('en'),
+    // Any en-US voice
+    v => v.lang === 'en-US',
+    v => v.lang === 'en-GB',
+    // Fallback: any English voice
+    v => v.lang.startsWith('en'),
+  ];
+
+  for (const test of priorities) {
+    const match = voices.find(test);
+    if (match) return match;
+  }
+  return voices[0];
+}
+
+function initVoices() {
+  preferredVoice = selectBestVoice();
+  // Some browsers load voices async
+  if (!preferredVoice && state.ttsAvailable) {
+    window.speechSynthesis.addEventListener('voiceschanged', () => {
+      preferredVoice = selectBestVoice();
+    }, { once: true });
+  }
+}
+
 function speak(text, rate = 0.9) {
   if (!state.ttsEnabled || !state.ttsAvailable) return;
   try {
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = 'en-US';
+    if (!preferredVoice) preferredVoice = selectBestVoice();
+    if (preferredVoice) {
+      utter.voice = preferredVoice;
+      utter.lang = preferredVoice.lang;
+    } else {
+      utter.lang = 'en-US';
+    }
     utter.rate = rate;
     utter.pitch = 1;
+    utter.volume = 1;
     window.speechSynthesis.speak(utter);
-  } catch (e) {}
+  } catch (e) { console.warn('TTS error:', e); }
+}
+
+// Speak a word slowly for practice
+function speakSlow(text) {
+  speak(text, 0.55);
+}
+
+// Converts IPA like /ˈæp.əl/ into a simple reading guide like "a-pel"
+// Uses a learner-friendly approximation that maps each IPA symbol to a common spelling
+function simplePhonetic(ipa) {
+  if (!ipa) return '';
+
+  // Strip delimiters and stress marks
+  let s = ipa.replace(/[\/\[\]]/g, '').replace(/[ˈˌ]/g, '');
+
+  // Multi-char IPA sequences — must be replaced first (longest first)
+  const multi = [
+    ['tʃ', 'ch'], ['dʒ', 'j'], ['ʃ', 'sh'], ['ʒ', 'zh'], ['θ', 'th'], ['ð', 'th'],
+    ['ŋ', 'ng'], ['aɪ', 'eye'], ['aʊ', 'ow'], ['ɔɪ', 'oy'], ['eɪ', 'ay'],
+    ['oʊ', 'oh'], ['əʊ', 'oh'], ['ɪə', 'eer'], ['eə', 'air'], ['ʊə', 'oor'],
+    ['iː', 'ee'], ['uː', 'oo'], ['ɑː', 'ah'], ['ɔː', 'aw'], ['ɜː', 'er'],
+  ];
+
+  // Single-char IPA symbols
+  const single = {
+    'æ': 'a', 'ɑ': 'ah', 'ɒ': 'o', 'ʌ': 'uh', 'ə': 'uh', 'ɛ': 'eh',
+    'ɪ': 'i', 'i': 'ee', 'ʊ': 'oo', 'u': 'oo', 'ɔ': 'aw', 'o': 'oh',
+    'e': 'e', 'a': 'a',
+    'ɹ': 'r', 'j': 'y', 'w': 'w', 'ɾ': 'd',
+    'p': 'p', 'b': 'b', 't': 't', 'd': 'd', 'k': 'k', 'ɡ': 'g', 'g': 'g',
+    'f': 'f', 'v': 'v', 's': 's', 'z': 'z', 'h': 'h',
+    'm': 'm', 'n': 'n', 'l': 'l', 'r': 'r',
+    'ː': '', // length mark already handled
+  };
+
+  // Apply multi-char replacements
+  for (const [from, to] of multi) {
+    s = s.split(from).join(to);
+  }
+
+  // Split on syllable separator, then convert each character
+  const syllables = s.split('.').map(syl => {
+    let out = '';
+    for (const ch of syl) {
+      if (single[ch] !== undefined) out += single[ch];
+      else if (/[a-z]/i.test(ch)) out += ch;
+    }
+    return out;
+  }).filter(Boolean);
+
+  // If no explicit syllable dots, return as one chunk
+  return syllables.length > 1 ? syllables.join('-') : syllables[0] || '';
 }
 
 function toggleTts() {
@@ -1472,6 +1610,13 @@ async function renderStudy() {
               ${state.ttsAvailable && state.ttsEnabled ? `<button class="speak-btn small" id="speak-word">${ICONS.volume}</button>` : ''}
             </div>
             <div class="back-meta">${card.ipa} · <i>${card.pos}</i></div>
+            ${simplePhonetic(card.ipa) ? `
+              <div class="simple-phonetic" style="margin-bottom: 14px;">
+                <span class="simple-phonetic-label">Say it</span>
+                <span class="simple-phonetic-text">${simplePhonetic(card.ipa)}</span>
+                ${state.ttsAvailable && state.ttsEnabled ? `<button class="simple-phonetic-speak" id="speak-slow" title="Slow pronunciation">${ICONS.volume}</button>` : ''}
+              </div>
+            ` : ''}
             <div class="definition">${card.def}</div>
             <div class="example">
               <div class="example-text">"${card.example}"</div>
@@ -1500,6 +1645,13 @@ async function renderStudy() {
               ${state.ttsAvailable && state.ttsEnabled ? `<button class="speak-btn" id="speak-word">${ICONS.volume}</button>` : ''}
             </div>
             <div class="ipa">${card.ipa}</div>
+            ${simplePhonetic(card.ipa) ? `
+              <div class="simple-phonetic">
+                <span class="simple-phonetic-label">Say it</span>
+                <span class="simple-phonetic-text">${simplePhonetic(card.ipa)}</span>
+                ${state.ttsAvailable && state.ttsEnabled ? `<button class="simple-phonetic-speak" id="speak-slow" title="Slow pronunciation">${ICONS.volume}</button>` : ''}
+              </div>
+            ` : ''}
             <div class="pos">${card.pos}</div>
             <div class="hint">Tap card to reveal</div>
           </div>
@@ -1530,6 +1682,7 @@ async function renderStudy() {
   document.getElementById('shuffle-btn').onclick = handleShuffle;
   
   if (document.getElementById('speak-word')) document.getElementById('speak-word').onclick = (e) => { e.stopPropagation(); speak(card.word); };
+  if (document.getElementById('speak-slow')) document.getElementById('speak-slow').onclick = (e) => { e.stopPropagation(); speakSlow(card.word); };
   if (document.getElementById('speak-example')) document.getElementById('speak-example').onclick = (e) => { e.stopPropagation(); speak(card.example); };
   if (document.getElementById('toggle-translations')) document.getElementById('toggle-translations').onclick = (e) => { e.stopPropagation(); state.showTranslations = !state.showTranslations; render(); };
   
@@ -1728,6 +1881,7 @@ function render() {
 // Init
 if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   state.ttsAvailable = true;
+  initVoices();
 }
 loadState();
 state.screen = 'home';
