@@ -2,7 +2,7 @@
 
 A modern, colorful vocabulary learning app built around the CEFR framework (A1 → C2). Study English words with photos, pronunciation, IPA transcription, example sentences, and Arabic/Mandarin translations at beginner levels.
 
-🔗 **Live demo:** `[https://<your-username>.github.io/cefr-flashcards/](https://tankkagemaru.github.io/cefr-flashcard/)`
+🔗 **Live demo:** `https://tankkagemaru.github.io/cefr-flashcard/`
 
 ![CEFR Flashcards](https://img.shields.io/badge/CEFR-A1--C2-blueviolet) ![No Build](https://img.shields.io/badge/build-none-success) ![Vanilla JS](https://img.shields.io/badge/js-vanilla-yellow) ![Free](https://img.shields.io/badge/license-MIT-blue)
 
