@@ -1267,7 +1267,7 @@ function updateStreak() {
 
 // Stats helpers
 function getLevelStats(setKey, level) {
-  const cards = window.WORD_SETS?.[setKey]?.levels?.[level] || [];
+  const cards = window.WORD_SETS[setKey].levels[level];
   let mastered = 0, learning = 0, hard = 0;
   cards.forEach((_, idx) => {
     const status = state.progress[`${setKey}-${level}-${idx}`];
@@ -1289,7 +1289,7 @@ function getSetStats(setKey) {
 }
 
 function getCards(setKey, level) {
-  const cards = window.WORD_SETS?.[setKey]?.levels?.[level] || [];
+  const cards = window.WORD_SETS[setKey].levels[level];
   if (state.shuffled && state.shuffledOrder) return state.shuffledOrder.map(i => cards[i]);
   return cards;
 }
@@ -1302,22 +1302,6 @@ function showScreen(id) {
   document.getElementById(id + '-screen').classList.remove('hidden');
   state.screen = id;
   window.scrollTo(0, 0);
-}
-
-function renderScreenError(screenId, title, err) {
-  const screen = document.getElementById(screenId);
-  if (!screen) return;
-  const detail = err && err.message ? err.message : String(err || 'Unknown error');
-  screen.innerHTML = `
-    <div class="error-box">
-      <h3>${title}</h3>
-      <p>Something went wrong while rendering this screen.</p>
-      <p><code>${detail}</code></p>
-      <button class="btn-primary" id="error-back-home">Back to home</button>
-    </div>
-  `;
-  const btn = document.getElementById('error-back-home');
-  if (btn) btn.onclick = () => { renderHome(); showScreen('home'); };
 }
 
 function renderHome() {
@@ -1396,18 +1380,6 @@ function renderHome() {
 }
 
 function startStudying(level) {
-  const cards = getCards(state.currentSet, level);
-  if (!cards.length) {
-    const screen = document.getElementById('study-screen');
-    screen.innerHTML = `
-      <div class="error-box">
-        <h3>No cards found for this level</h3>
-        <p>Please add words for <code>${state.currentSet}/${level}</code> in <code>words.js</code> or <code>index.html</code>.</p>
-      </div>
-    `;
-    showScreen('study');
-    return;
-  }
   state.currentLevel = level;
   state.cardIndex = 0;
   state.flipped = false;
@@ -1419,8 +1391,7 @@ function startStudying(level) {
 }
 
 function handleShuffle() {
-  const cards = getCards(state.currentSet, state.currentLevel);
-  if (!cards.length) return;
+  const cards = window.WORD_SETS[state.currentSet].levels[state.currentLevel];
   state.shuffledOrder = [...Array(cards.length).keys()].sort(() => Math.random() - 0.5);
   state.shuffled = true;
   state.cardIndex = 0;
@@ -1429,8 +1400,7 @@ function handleShuffle() {
 }
 
 function markCard(status) {
-  const cards = getCards(state.currentSet, state.currentLevel);
-  if (!cards.length) return;
+  const cards = window.WORD_SETS[state.currentSet].levels[state.currentLevel];
   const actualIdx = state.shuffled && state.shuffledOrder ? state.shuffledOrder[state.cardIndex] : state.cardIndex;
   const key = `${state.currentSet}-${state.currentLevel}-${actualIdx}`;
   state.progress[key] = status;
@@ -1443,8 +1413,8 @@ function markCard(status) {
     state.flipped = false;
     render();
   } else {
-    renderResults();
-    showScreen('results');
+    state.screen = 'results';
+    render();
   }
 }
 
@@ -1458,34 +1428,18 @@ function toggleFavorite() {
   render();
 }
 
-function renderStudy() {
+async function renderStudy() {
   const cards = getCards(state.currentSet, state.currentLevel);
   const card = cards[state.cardIndex];
-  if (!card) {
-    const screen = document.getElementById('study-screen');
-    screen.innerHTML = `
-      <div class="error-box">
-        <h3>Could not load this card</h3>
-        <p>The selected level appears empty or invalid. Please go back and choose another level.</p>
-        <button class="btn-primary" id="fallback-home">Back to home</button>
-      </div>
-    `;
-    document.getElementById('fallback-home').onclick = () => {
-      state.currentLevel = null;
-      state.cardIndex = 0;
-      state.flipped = false;
-      renderHome();
-      showScreen('home');
-    };
-    return;
-  }
   const actualIdx = state.shuffled && state.shuffledOrder ? state.shuffledOrder[state.cardIndex] : state.cardIndex;
   const cardKey = `${state.currentSet}-${state.currentLevel}-${actualIdx}`;
   const isFavorite = state.favorites.includes(cardKey);
   const status = state.progress[cardKey] || 'new';
   const hasTranslations = state.currentLevel === 'A1' || state.currentLevel === 'A2';
   const info = LEVEL_INFO[state.currentLevel];
-  const renderToken = `${state.currentSet}-${state.currentLevel}-${actualIdx}`;
+
+  // Try to load photo
+  const photoUrl = await resolvePhoto(state.currentSet, state.currentLevel, card.word);
 
   const screen = document.getElementById('study-screen');
   screen.innerHTML = `
@@ -1503,7 +1457,7 @@ function renderStudy() {
 
     <div class="flashcard" id="flashcard">
       <div class="flashcard-image theme-${card.theme}">
-        <img class="photo-img" id="card-photo" src="" alt="${card.word}" style="display:none;" onerror="this.style.display='none'">
+        ${photoUrl ? `<img class="photo-img" src="${photoUrl}" alt="${card.word}" onerror="this.style.display='none'">` : ''}
         <div class="glyph">${card.glyph}</div>
         <button class="fav-btn" id="fav-btn">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="${isFavorite ? '#ec4899' : 'none'}" stroke="${isFavorite ? '#ec4899' : '#6b7280'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -1569,12 +1523,7 @@ function renderStudy() {
   `;
 
   // Bind events
-  document.getElementById('back-to-home').onclick = () => {
-    state.flipped = false;
-    window.speechSynthesis?.cancel();
-    state.screen = 'home';
-    render();
-  };
+  document.getElementById('back-to-home').onclick = () => { state.flipped = false; state.screen = 'home'; window.speechSynthesis?.cancel(); render(); };
   document.getElementById('flashcard').onclick = () => { state.flipped = !state.flipped; render(); };
   document.getElementById('fav-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(); };
   if (document.getElementById('toggle-tts')) document.getElementById('toggle-tts').onclick = toggleTts;
@@ -1590,19 +1539,6 @@ function renderStudy() {
   
   if (document.getElementById('prev-btn')) document.getElementById('prev-btn').onclick = (e) => { e.stopPropagation(); if (state.cardIndex > 0) { state.cardIndex--; state.flipped = false; render(); }};
   if (document.getElementById('next-btn')) document.getElementById('next-btn').onclick = (e) => { e.stopPropagation(); if (state.cardIndex < cards.length - 1) { state.cardIndex++; state.flipped = false; render(); }};
-
-  // Load card photo asynchronously so the UI appears immediately.
-  resolvePhoto(state.currentSet, state.currentLevel, card.word).then(photoUrl => {
-    if (!photoUrl) return;
-    const activeToken = `${state.currentSet}-${state.currentLevel}-${(state.shuffled && state.shuffledOrder ? state.shuffledOrder[state.cardIndex] : state.cardIndex)}`;
-    if (activeToken !== renderToken) return;
-    const img = document.getElementById('card-photo');
-    if (!img) return;
-    img.src = photoUrl;
-    img.style.display = '';
-  }).catch(err => {
-    console.warn('Photo load failed', err);
-  });
 }
 
 function renderResults() {
@@ -1635,19 +1571,11 @@ function renderResults() {
   `;
   document.getElementById('start-quiz').onclick = startQuiz;
   document.getElementById('study-again').onclick = () => startStudying(state.currentLevel);
-  document.getElementById('back-home').onclick = () => {
-    state.screen = 'home';
-    render();
-  };
+  document.getElementById('back-home').onclick = () => { state.screen = 'home'; render(); };
 }
 
 function startQuiz() {
-  const cards = getCards(state.currentSet, state.currentLevel);
-  if (!cards.length) {
-    state.screen = 'home';
-    render();
-    return;
-  }
+  const cards = window.WORD_SETS[state.currentSet].levels[state.currentLevel];
   const numQuestions = Math.min(5, cards.length);
   const questionIndices = [...Array(cards.length).keys()].sort(() => Math.random() - 0.5).slice(0, numQuestions);
   state.quizQuestions = questionIndices.map(idx => {
@@ -1676,7 +1604,7 @@ function answerQuiz(option) {
     saveState();
     speak(option.word);
   }
-  renderQuiz();
+  render();
 }
 
 function nextQuizQuestion() {
@@ -1684,7 +1612,7 @@ function nextQuizQuestion() {
     state.quizIndex++;
     state.selectedAnswer = null;
     state.quizAnswered = false;
-    renderQuiz();
+    render();
   } else {
     state.screen = 'home';
     render();
@@ -1695,24 +1623,6 @@ async function renderQuiz() {
   const q = state.quizQuestions[state.quizIndex];
   const info = LEVEL_INFO[state.currentLevel];
   const screen = document.getElementById('quiz-screen');
-  if (!q || !info) {
-    screen.innerHTML = `
-      <div class="error-box">
-        <h3>Quiz is unavailable</h3>
-        <p>We couldn't load quiz questions for this level. Please return home and start a new study session.</p>
-        <button class="btn-primary" id="quiz-back-home">Back to home</button>
-      </div>
-    `;
-    document.getElementById('quiz-back-home').onclick = () => {
-      state.quizQuestions = [];
-      state.quizIndex = 0;
-      state.quizAnswered = false;
-      state.selectedAnswer = null;
-      renderHome();
-      showScreen('home');
-    };
-    return;
-  }
 
   // Load photo for correct answer if quiz is picture type
   let correctPhotoUrl = null;
@@ -1807,19 +1717,12 @@ async function renderQuiz() {
   if (document.getElementById('quiz-speak')) document.getElementById('quiz-speak').onclick = () => speak(q.correct.word);
 }
 
-// Main render dispatcher
+// Main render dispatcher — routes to the correct render function for current screen
 function render() {
   if (state.screen === 'home') { renderHome(); showScreen('home'); }
-  else if (state.screen === 'study') {
-    try { renderStudy(); } catch (err) { renderScreenError('study-screen', 'Could not open this level', err); }
-    showScreen('study');
-  }
+  else if (state.screen === 'study') { renderStudy(); showScreen('study'); }
   else if (state.screen === 'results') { renderResults(); showScreen('results'); }
-  else if (state.screen === 'quiz') {
-    renderQuiz().catch(err => renderScreenError('quiz-screen', 'Could not load quiz', err));
-    showScreen('quiz');
-  }
-  else { renderHome(); showScreen('home'); }
+  else if (state.screen === 'quiz') { renderQuiz(); showScreen('quiz'); }
 }
 
 // Init
@@ -1827,6 +1730,6 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   state.ttsAvailable = true;
 }
 loadState();
+state.screen = 'home';
 render();
-showScreen('home');
 </script>
